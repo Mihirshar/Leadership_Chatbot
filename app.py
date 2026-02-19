@@ -1,5 +1,6 @@
 import streamlit as st
 import base64
+import re
 from pathlib import Path
 from core.personality_engine import load_all_leaders, get_xp_level
 from core.prompt_builder import build_system_prompt
@@ -61,18 +62,24 @@ st.markdown("""<style>
     box-shadow:0 0 20px rgba(var(--exl-r),var(--exl-g),var(--exl-b),0.15)!important;
 }
 
-/* ── Buttons: primary (EXL orange filled) ── */
+/* ── Buttons: primary (EXL orange filled + glow) ── */
 .stButton>button[kind="primary"],
 .stButton>button[data-testid="stBaseButton-primary"]{
-    background:linear-gradient(135deg,#F26522,#E85D26)!important;
+    background:linear-gradient(135deg,#F26522,#E85D26,#F4943E)!important;
+    background-size:200% 100%!important;
     border:1px solid rgba(var(--exl-r),var(--exl-g),var(--exl-b),0.6)!important;
-    color:#fff!important;font-weight:600!important;
-    box-shadow:0 2px 12px rgba(var(--exl-r),var(--exl-g),var(--exl-b),0.25)!important;
+    color:#fff!important;font-weight:600!important;font-size:0.88rem!important;
+    padding:14px 28px!important;border-radius:14px!important;
+    box-shadow:0 4px 20px rgba(var(--exl-r),var(--exl-g),var(--exl-b),0.3),0 0 40px rgba(var(--exl-r),var(--exl-g),var(--exl-b),0.1)!important;
+    animation:shimmer 3s linear infinite!important;
+    transition:all 0.3s cubic-bezier(0.4,0,0.2,1)!important;
 }
 .stButton>button[kind="primary"]:hover,
 .stButton>button[data-testid="stBaseButton-primary"]:hover{
-    background:linear-gradient(135deg,#E85D26,#D4551E)!important;
-    box-shadow:0 4px 24px rgba(var(--exl-r),var(--exl-g),var(--exl-b),0.4)!important;
+    background:linear-gradient(135deg,#E85D26,#D4551E,#F26522)!important;
+    background-size:200% 100%!important;
+    box-shadow:0 6px 30px rgba(var(--exl-r),var(--exl-g),var(--exl-b),0.5),0 0 60px rgba(var(--exl-r),var(--exl-g),var(--exl-b),0.2)!important;
+    transform:translateY(-2px)!important;
 }
 
 /* ── Text inputs / textareas ── */
@@ -161,11 +168,54 @@ hr{border-color:var(--border)!important;}
 }
 @keyframes soundWave{0%,100%{transform:scaleY(0.25)}25%{transform:scaleY(0.85)}50%{transform:scaleY(0.5)}75%{transform:scaleY(1)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 @keyframes gridScroll{0%{transform:translate(0,0)}100%{transform:translate(30px,30px)}}
 @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
 @keyframes badgePop{0%{opacity:0;transform:scale(0.85)}60%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
 @keyframes glowDot{0%,100%{opacity:0.4}50%{opacity:1}}
 @keyframes accentSlide{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* ── Floating orbs ── */
+@keyframes orbFloat1{0%{transform:translate(0,0) scale(1)}33%{transform:translate(60px,-80px) scale(1.1)}66%{transform:translate(-40px,50px) scale(0.9)}100%{transform:translate(0,0) scale(1)}}
+@keyframes orbFloat2{0%{transform:translate(0,0) scale(1)}33%{transform:translate(-70px,60px) scale(0.85)}66%{transform:translate(50px,-40px) scale(1.15)}100%{transform:translate(0,0) scale(1)}}
+@keyframes orbFloat3{0%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,70px) scale(1.2)}100%{transform:translate(0,0) scale(1)}}
+@keyframes orbFloat4{0%{transform:translate(0,0)}25%{transform:translate(-50px,-60px)}50%{transform:translate(30px,-30px)}75%{transform:translate(-20px,50px)}100%{transform:translate(0,0)}}
+@keyframes titleGlow{0%,100%{text-shadow:0 0 30px rgba(242,101,34,0.3),0 0 60px rgba(242,101,34,0.1)}50%{text-shadow:0 0 50px rgba(242,101,34,0.5),0 0 100px rgba(242,101,34,0.2)}}
+@keyframes borderRotate{0%{--angle:0deg}100%{--angle:360deg}}
+@keyframes particleDrift{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-100vh) translateX(30px);opacity:0}}
+@keyframes ringPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.15}50%{transform:translate(-50%,-50%) scale(1.15);opacity:0.08}}
+@keyframes ringRotate{0%{transform:translate(-50%,-50%) rotate(0deg)}100%{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes ringRotateR{0%{transform:translate(-50%,-50%) rotate(360deg)}100%{transform:translate(-50%,-50%) rotate(0deg)}}
+@keyframes streak{0%{transform:translateX(-100%) translateY(100%);opacity:0}30%{opacity:0.5}70%{opacity:0.5}100%{transform:translateX(200%) translateY(-200%);opacity:0}}
+@keyframes constellationPulse{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:0.8;transform:scale(1.5)}}
+@keyframes cardBorderFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes floatIcon{0%,100%{transform:translateY(0) rotate(0deg);opacity:0.12}50%{transform:translateY(-15px) rotate(10deg);opacity:0.2}}
+
+/* ── Dynamic Lip Sync (JS Driven) ── */
+.avatar-wrapper.speaking .avatar-ring {
+    animation: speakingPulse 0.4s ease-in-out infinite alternate !important;
+    border-color: #4ADE80 !important;
+    box-shadow: 0 0 35px rgba(74,222,128,0.5), 0 0 70px rgba(74,222,128,0.2) !important;
+    transform: scale(1.02);
+}
+.avatar-wrapper.speaking img {
+    animation: lipSync 0.15s ease-in-out infinite alternate;
+}
+@keyframes lipSync { 0% { transform: scale(1); } 100% { transform: scale(1, 0.98); } }
+
+.avatar-wrapper.speaking .wave-bar {
+    animation: soundWave 0.5s ease-in-out infinite !important;
+    opacity: 1 !important;
+    background: #4ADE80 !important;
+}
+.avatar-wrapper.speaking .status-text { color: #4ADE80 !important; }
+.avatar-wrapper.speaking .status-text span { display: none; }
+.avatar-wrapper.speaking .status-text::after { content: "SPEAKING"; }
+
+/* Initial state overrides to support JS toggling */
+.avatar-wrapper .avatar-ring { transition: all 0.3s ease; }
+.avatar-wrapper .wave-bar { transition: all 0.3s ease; }
+.avatar-wrapper .status-text { transition: color 0.3s ease; }
 </style>""", unsafe_allow_html=True)
 
 
@@ -185,6 +235,8 @@ def init_state():
         "tts_pending": False,
         "last_user_text": None,
         "last_leader_text": None,
+        "last_user_tts_text": None,
+        "last_leader_tts_text": None,
         "last_leader_audio_b64": None,
         "user_name": "",
         "user_avatar_path": None,
@@ -199,6 +251,30 @@ def init_state():
 init_state()
 
 
+def _clean_tts_text(text: str) -> str:
+    """Strip markdown/special characters for clean TTS."""
+    if not text:
+        return ""
+    t = text
+    # Remove code blocks and inline code
+    t = re.sub(r"```[\s\S]*?```", " ", t)
+    t = re.sub(r"`([^`]*)`", r"\1", t)
+    # Convert markdown links to plain text
+    t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1", t)
+    # Remove URLs
+    t = re.sub(r"https?://\S+", " ", t)
+    # Remove markdown bullets and blockquotes
+    t = re.sub(r"^\s*[-*•]\s+", "", t, flags=re.MULTILINE)
+    t = re.sub(r"^\s*>\s+", "", t, flags=re.MULTILINE)
+    # Remove common special characters used in markdown
+    t = re.sub(r"[*_~#|<>]", " ", t)
+    # Remove quotes
+    t = re.sub(r'["\']', "", t)
+    # Collapse whitespace
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
 @st.cache_data
 def load_leaders():
     return load_all_leaders()
@@ -209,49 +285,174 @@ leaders = load_leaders()
 # ---------------------------------------------------------------------------
 # Consent screen
 # ---------------------------------------------------------------------------
-def render_consent():
-    # Ambient grid
+def _render_ambient_orbs():
+    """Floating gradient orbs, particles, rings, streaks, and constellation background."""
     st.markdown(
-        '<div style="position:fixed;top:0;left:0;width:100%;height:100%;'
-        'background-image:linear-gradient(rgba(242,101,34,0.015) 1px,transparent 1px),'
-        'linear-gradient(90deg,rgba(242,101,34,0.015) 1px,transparent 1px);'
-        'background-size:40px 40px;animation:gridScroll 12s linear infinite;'
-        'pointer-events:none;z-index:0;"></div>',
+        '<div style="position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:0;">'
+
+        # ── Gradient orbs ──
+        '<div style="position:absolute;top:12%;left:8%;width:340px;height:340px;border-radius:50%;'
+        'background:radial-gradient(circle,rgba(242,101,34,0.18),rgba(242,101,34,0.03) 70%,transparent);'
+        'filter:blur(60px);animation:orbFloat1 18s ease-in-out infinite;"></div>'
+        '<div style="position:absolute;top:55%;right:10%;width:280px;height:280px;border-radius:50%;'
+        'background:radial-gradient(circle,rgba(139,92,246,0.15),rgba(139,92,246,0.02) 70%,transparent);'
+        'filter:blur(50px);animation:orbFloat2 22s ease-in-out infinite;"></div>'
+        '<div style="position:absolute;top:30%;right:25%;width:200px;height:200px;border-radius:50%;'
+        'background:radial-gradient(circle,rgba(45,212,191,0.12),rgba(45,212,191,0.02) 70%,transparent);'
+        'filter:blur(45px);animation:orbFloat3 15s ease-in-out infinite;"></div>'
+        '<div style="position:absolute;bottom:15%;left:20%;width:250px;height:250px;border-radius:50%;'
+        'background:radial-gradient(circle,rgba(251,191,36,0.1),rgba(251,191,36,0.02) 70%,transparent);'
+        'filter:blur(55px);animation:orbFloat4 20s ease-in-out infinite;"></div>'
+        '<div style="position:absolute;top:8%;right:15%;width:150px;height:150px;border-radius:50%;'
+        'background:radial-gradient(circle,rgba(244,114,182,0.12),transparent 70%);'
+        'filter:blur(40px);animation:orbFloat1 25s ease-in-out infinite reverse;"></div>'
+        '<div style="position:absolute;bottom:30%;right:5%;width:180px;height:180px;border-radius:50%;'
+        'background:radial-gradient(circle,rgba(59,130,246,0.1),transparent 70%);'
+        'filter:blur(45px);animation:orbFloat3 28s ease-in-out infinite reverse;"></div>'
+
+        # ── Animated rings (center decorative) ──
+        '<div style="position:absolute;top:50%;left:50%;width:500px;height:500px;border-radius:50%;'
+        'border:1px solid rgba(242,101,34,0.06);animation:ringPulse 6s ease-in-out infinite;"></div>'
+        '<div style="position:absolute;top:50%;left:50%;width:350px;height:350px;border-radius:50%;'
+        'border:1px dashed rgba(139,92,246,0.08);animation:ringRotate 30s linear infinite;"></div>'
+        '<div style="position:absolute;top:50%;left:50%;width:450px;height:450px;border-radius:50%;'
+        'border:1px dashed rgba(45,212,191,0.06);animation:ringRotateR 40s linear infinite;"></div>'
+        '<div style="position:absolute;top:50%;left:50%;width:600px;height:600px;border-radius:50%;'
+        'border:1px solid rgba(242,101,34,0.03);animation:ringPulse 8s ease-in-out infinite 2s;"></div>'
+
+        # ── Diagonal light streaks ──
+        '<div style="position:absolute;top:0;left:0;width:1px;height:200px;'
+        'background:linear-gradient(180deg,transparent,rgba(242,101,34,0.3),transparent);'
+        'transform:rotate(35deg);animation:streak 8s linear infinite 0s;"></div>'
+        '<div style="position:absolute;top:20%;left:30%;width:1px;height:150px;'
+        'background:linear-gradient(180deg,transparent,rgba(139,92,246,0.25),transparent);'
+        'transform:rotate(35deg);animation:streak 12s linear infinite 3s;"></div>'
+        '<div style="position:absolute;top:40%;left:60%;width:1px;height:180px;'
+        'background:linear-gradient(180deg,transparent,rgba(45,212,191,0.2),transparent);'
+        'transform:rotate(35deg);animation:streak 10s linear infinite 6s;"></div>'
+
+        # ── Constellation dots ──
+        '<div style="position:absolute;top:15%;left:25%;width:3px;height:3px;border-radius:50%;background:rgba(242,101,34,0.5);animation:constellationPulse 3s ease-in-out infinite;"></div>'
+        '<div style="position:absolute;top:22%;left:32%;width:2px;height:2px;border-radius:50%;background:rgba(242,101,34,0.4);animation:constellationPulse 3s ease-in-out infinite 0.5s;"></div>'
+        '<div style="position:absolute;top:18%;left:30%;width:2px;height:2px;border-radius:50%;background:rgba(242,101,34,0.3);animation:constellationPulse 3s ease-in-out infinite 1s;"></div>'
+        '<div style="position:absolute;top:75%;right:20%;width:3px;height:3px;border-radius:50%;background:rgba(139,92,246,0.5);animation:constellationPulse 4s ease-in-out infinite;"></div>'
+        '<div style="position:absolute;top:70%;right:25%;width:2px;height:2px;border-radius:50%;background:rgba(139,92,246,0.4);animation:constellationPulse 4s ease-in-out infinite 0.7s;"></div>'
+        '<div style="position:absolute;top:78%;right:18%;width:2px;height:2px;border-radius:50%;background:rgba(139,92,246,0.3);animation:constellationPulse 4s ease-in-out infinite 1.4s;"></div>'
+        '<div style="position:absolute;top:40%;left:80%;width:2px;height:2px;border-radius:50%;background:rgba(45,212,191,0.4);animation:constellationPulse 3.5s ease-in-out infinite 0.3s;"></div>'
+        '<div style="position:absolute;top:35%;left:75%;width:3px;height:3px;border-radius:50%;background:rgba(45,212,191,0.5);animation:constellationPulse 3.5s ease-in-out infinite;"></div>'
+
+        # ── Floating particles (rising) ──
+        '<div style="position:absolute;top:20%;left:15%;width:4px;height:4px;border-radius:50%;background:rgba(242,101,34,0.6);animation:particleDrift 12s linear infinite;"></div>'
+        '<div style="position:absolute;top:60%;left:70%;width:3px;height:3px;border-radius:50%;background:rgba(139,92,246,0.5);animation:particleDrift 16s linear infinite 3s;"></div>'
+        '<div style="position:absolute;top:80%;left:40%;width:3px;height:3px;border-radius:50%;background:rgba(45,212,191,0.5);animation:particleDrift 14s linear infinite 6s;"></div>'
+        '<div style="position:absolute;top:45%;left:85%;width:2px;height:2px;border-radius:50%;background:rgba(251,191,36,0.5);animation:particleDrift 18s linear infinite 2s;"></div>'
+        '<div style="position:absolute;top:70%;left:25%;width:3px;height:3px;border-radius:50%;background:rgba(244,114,182,0.4);animation:particleDrift 15s linear infinite 8s;"></div>'
+        '<div style="position:absolute;top:35%;left:55%;width:2px;height:2px;border-radius:50%;background:rgba(242,101,34,0.4);animation:particleDrift 20s linear infinite 4s;"></div>'
+        '<div style="position:absolute;top:90%;left:10%;width:3px;height:3px;border-radius:50%;background:rgba(59,130,246,0.5);animation:particleDrift 17s linear infinite 1s;"></div>'
+        '<div style="position:absolute;top:85%;left:60%;width:2px;height:2px;border-radius:50%;background:rgba(244,114,182,0.5);animation:particleDrift 13s linear infinite 5s;"></div>'
+        '<div style="position:absolute;top:50%;left:5%;width:3px;height:3px;border-radius:50%;background:rgba(45,212,191,0.4);animation:particleDrift 19s linear infinite 7s;"></div>'
+        '<div style="position:absolute;top:95%;left:90%;width:2px;height:2px;border-radius:50%;background:rgba(251,191,36,0.4);animation:particleDrift 11s linear infinite 9s;"></div>'
+
+        # ── Floating decorative icons ──
+        '<div style="position:absolute;top:20%;left:5%;font-size:1.4rem;animation:floatIcon 8s ease-in-out infinite;">&#x1F4A1;</div>'
+        '<div style="position:absolute;top:65%;right:8%;font-size:1.2rem;animation:floatIcon 10s ease-in-out infinite 2s;">&#x1F680;</div>'
+        '<div style="position:absolute;bottom:20%;left:12%;font-size:1.1rem;animation:floatIcon 9s ease-in-out infinite 4s;">&#x2728;</div>'
+        '<div style="position:absolute;top:12%;right:30%;font-size:1rem;animation:floatIcon 11s ease-in-out infinite 1s;">&#x1F3AF;</div>'
+        '<div style="position:absolute;bottom:35%;right:15%;font-size:1.3rem;animation:floatIcon 7s ease-in-out infinite 3s;">&#x1F451;</div>'
+
+        # ── Subtle grid overlay ──
+        '<div style="position:absolute;top:0;left:0;width:100%;height:100%;'
+        'background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),'
+        'linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);'
+        'background-size:50px 50px;animation:gridScroll 20s linear infinite;"></div>'
+
+        # ── Center spotlight ──
+        '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;'
+        'background:radial-gradient(circle,rgba(242,101,34,0.06),transparent 60%);"></div>'
+
+        '</div>',
         unsafe_allow_html=True,
     )
+
+
+def render_consent():
+    _render_ambient_orbs()
 
     st.markdown("&nbsp;", unsafe_allow_html=True)
     st.markdown("&nbsp;", unsafe_allow_html=True)
     _c1, center, _c2 = st.columns([1, 1.8, 1])
     with center:
+        # Logo with enhanced glow
         st.markdown(
-            f'<div style="text-align:center;animation:fadeIn 0.7s ease-out;">'
-            f'<img src="data:image/png;base64,{EXL_LOGO_B64}" style="height:60px;margin-bottom:24px;filter:drop-shadow(0 0 40px rgba(242,101,34,0.35));" />'
-            f'<div style="width:50px;height:2px;background:linear-gradient(90deg,transparent,#F26522,transparent);margin:0 auto 20px;"></div>'
-            f'<h1 style="font-family:Syne,sans-serif;font-size:2.4rem;font-weight:800;'
-            f'color:#F0F0F8;margin-bottom:6px;line-height:1.1;">Leadership AI</h1>'
-            f'<p style="font-size:0.78rem;color:rgba(255,255,255,0.3);letter-spacing:0.14em;'
-            f'text-transform:uppercase;font-weight:500;margin-bottom:32px;">'
-            f'AI Summit 2026 &middot; Gamified Leadership Conversations</p>'
+            f'<div style="text-align:center;animation:fadeInUp 0.8s ease-out;">'
+            f'<img src="data:image/png;base64,{EXL_LOGO_B64}" style="height:70px;margin-bottom:20px;'
+            f'filter:drop-shadow(0 0 50px rgba(242,101,34,0.5)) drop-shadow(0 0 100px rgba(242,101,34,0.2));" />'
             f'</div>',
             unsafe_allow_html=True,
         )
 
+        # Title + subtitle
         st.markdown(
-            '<div style="background:rgba(242,101,34,0.05);border:1px solid rgba(242,101,34,0.12);'
-            'border-radius:14px;padding:18px 22px;margin-bottom:24px;">'
+            '<div style="text-align:center;animation:fadeInUp 1s ease-out 0.15s both;">'
+            '<h1 style="font-family:Syne,sans-serif;font-size:2.6rem;font-weight:800;'
+            'color:#F0F0F8;margin-bottom:6px;line-height:1.1;">Leadership AI</h1>'
+            '<p style="font-size:0.78rem;color:rgba(255,255,255,0.3);letter-spacing:0.14em;'
+            'text-transform:uppercase;font-weight:500;margin-bottom:12px;">'
+            'AI Summit 2026 &middot; Gamified Leadership Conversations</p>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        # Feature chips
+        st.markdown(
+            '<div style="text-align:center;animation:fadeInUp 1.1s ease-out 0.3s both;margin-bottom:32px;">'
+            '<div style="display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center;">'
+            '<span style="padding:7px 16px;border-radius:100px;font-size:0.7rem;font-weight:600;'
+            'letter-spacing:0.05em;text-transform:uppercase;'
+            'background:rgba(242,101,34,0.08);border:1px solid rgba(242,101,34,0.18);color:rgba(255,255,255,0.5);">'
+            '&#x1F3AE; Gamified</span>'
+            '<span style="padding:7px 16px;border-radius:100px;font-size:0.7rem;font-weight:600;'
+            'letter-spacing:0.05em;text-transform:uppercase;'
+            'background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.18);color:rgba(255,255,255,0.5);">'
+            '&#x1F916; AI Avatars</span>'
+            '<span style="padding:7px 16px;border-radius:100px;font-size:0.7rem;font-weight:600;'
+            'letter-spacing:0.05em;text-transform:uppercase;'
+            'background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.18);color:rgba(255,255,255,0.5);">'
+            '&#x1F3A4; Voice Cloned</span>'
+            '</div></div>',
+            unsafe_allow_html=True,
+        )
+
+        # Glassmorphism disclaimer card (animated border)
+        st.markdown(
+            '<div style="animation:fadeInUp 1.2s ease-out 0.45s both;">'
+            '<div style="position:relative;border-radius:20px;padding:2px;">'
+            '<div style="position:absolute;inset:0;border-radius:20px;'
+            'background:linear-gradient(135deg,rgba(242,101,34,0.3),rgba(139,92,246,0.2),rgba(45,212,191,0.2),rgba(242,101,34,0.3));'
+            'background-size:300% 300%;animation:cardBorderFlow 6s ease infinite;"></div>'
+            '<div style="position:relative;background:rgba(6,6,11,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);'
+            'border-radius:18px;padding:20px 24px;">'
             '<p style="margin:0;font-size:0.82rem;color:rgba(255,255,255,0.55);line-height:1.6;">'
             '<strong style="color:rgba(255,255,255,0.7);">Disclaimer:</strong> '
             'This experience features AI-simulated avatars inspired by leadership personas. '
             'Responses are generated by AI and <strong>do not represent the actual views, '
             'opinions, or statements</strong> of any real individual. '
-            'This is a demonstration for the EXL AI Summit.</p></div>',
+            'This is a demonstration for the EXL AI Summit.</p>'
+            '</div></div></div>',
             unsafe_allow_html=True,
         )
 
         if st.button("I Understand — Enter the Experience", use_container_width=True, type="primary"):
             st.session_state.show_consent = False
             st.rerun()
+
+        # Subtle footer
+        st.markdown(
+            '<div style="text-align:center;margin-top:40px;animation:fadeInUp 1.3s ease-out 0.6s both;">'
+            '<p style="font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:0.1em;text-transform:uppercase;">'
+            'Powered by Gemini &middot; Built for EXL</p></div>',
+            unsafe_allow_html=True,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -267,24 +468,18 @@ def _save_user_photo(photo_bytes: bytes, name: str) -> str:
 
 
 def render_photo_setup():
-    # Ambient grid
-    st.markdown(
-        '<div style="position:fixed;top:0;left:0;width:100%;height:100%;'
-        'background-image:linear-gradient(rgba(242,101,34,0.012) 1px,transparent 1px),'
-        'linear-gradient(90deg,rgba(242,101,34,0.012) 1px,transparent 1px);'
-        'background-size:40px 40px;animation:gridScroll 12s linear infinite;'
-        'pointer-events:none;z-index:0;"></div>',
-        unsafe_allow_html=True,
-    )
+    _render_ambient_orbs()
 
     st.markdown("&nbsp;", unsafe_allow_html=True)
     _c1, center, _c2 = st.columns([1, 2, 1])
     with center:
         st.markdown(
-            f'<div style="text-align:center;animation:fadeIn 0.6s ease-out;">'
-            f'<img src="data:image/png;base64,{EXL_LOGO_B64}" style="height:36px;margin-bottom:14px;filter:drop-shadow(0 0 25px rgba(242,101,34,0.25));" />'
-            f'<div style="width:40px;height:2px;background:linear-gradient(90deg,transparent,#F26522,transparent);margin:0 auto 14px;"></div>'
-            f'<h1 style="font-family:Syne,sans-serif;font-size:1.8rem;font-weight:800;color:#F0F0F8;margin-bottom:4px;">Create Your Avatar</h1>'
+            f'<div style="text-align:center;animation:fadeInUp 0.7s ease-out;">'
+            f'<img src="data:image/png;base64,{EXL_LOGO_B64}" style="height:36px;margin-bottom:14px;'
+            f'filter:drop-shadow(0 0 30px rgba(242,101,34,0.35));" />'
+            f'<h1 style="font-family:Syne,sans-serif;font-size:2rem;font-weight:800;margin-bottom:4px;'
+            f'background:linear-gradient(135deg,#F0F0F8,#F26522);-webkit-background-clip:text;'
+            f'-webkit-text-fill-color:transparent;background-clip:text;">Create Your Avatar</h1>'
             f'<p style="font-size:0.85rem;color:rgba(255,255,255,0.4);margin-bottom:24px;">'
             f'Snap a photo or upload one — AI will generate your personalised avatar!</p>'
             f'</div>',
@@ -412,27 +607,32 @@ def render_photo_setup():
 # Leader selection screen
 # ---------------------------------------------------------------------------
 def render_leader_selection():
-    # Ambient grid
-    st.markdown(
-        '<div style="position:fixed;top:0;left:0;width:100%;height:100%;'
-        'background-image:linear-gradient(rgba(242,101,34,0.012) 1px,transparent 1px),'
-        'linear-gradient(90deg,rgba(242,101,34,0.012) 1px,transparent 1px);'
-        'background-size:40px 40px;animation:gridScroll 12s linear infinite;'
-        'pointer-events:none;z-index:0;"></div>',
-        unsafe_allow_html=True,
-    )
+    _render_ambient_orbs()
 
     user_name = st.session_state.user_name
     greeting = f", {user_name}" if user_name and user_name != "You" else ""
 
     st.markdown(
-        f'<div style="text-align:center;padding:12px 0 4px;animation:fadeIn 0.6s ease-out;">'
-        f'<img src="data:image/png;base64,{EXL_LOGO_B64}" style="height:42px;margin-bottom:12px;filter:drop-shadow(0 0 30px rgba(242,101,34,0.3));" />'
-        f'<div style="width:40px;height:2px;background:linear-gradient(90deg,transparent,#F26522,transparent);margin:0 auto 12px;"></div>'
-        f'<h1 style="font-family:Syne,sans-serif;font-size:2rem;font-weight:800;'
-        f'color:#F0F0F8;margin-bottom:4px;">Leadership AI</h1>'
-        f'<p style="font-size:0.82rem;color:rgba(255,255,255,0.35);letter-spacing:0.1em;'
-        f'text-transform:uppercase;font-weight:500;">Choose Your Leader{greeting} &middot; Ask Anything &middot; Earn XP</p>'
+        f'<div style="text-align:center;padding:12px 0 4px;animation:fadeInUp 0.7s ease-out;">'
+        f'<img src="data:image/png;base64,{EXL_LOGO_B64}" style="height:42px;margin-bottom:12px;'
+        f'filter:drop-shadow(0 0 40px rgba(242,101,34,0.4));" />'
+        f'<h1 style="font-family:Syne,sans-serif;font-size:2.2rem;font-weight:800;margin-bottom:4px;'
+        f'background:linear-gradient(135deg,#F0F0F8 0%,#F26522 50%,#F0F0F8 100%);'
+        f'background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;'
+        f'background-clip:text;animation:shimmer 4s linear infinite;">Leadership AI</h1>'
+        f'<div style="display:inline-flex;gap:8px;margin-top:6px;">'
+        f'<span style="padding:4px 12px;border-radius:100px;font-size:0.65rem;font-weight:600;'
+        f'letter-spacing:0.06em;text-transform:uppercase;'
+        f'background:rgba(242,101,34,0.1);border:1px solid rgba(242,101,34,0.2);color:#F4943E;">'
+        f'Choose Your Leader{greeting}</span>'
+        f'<span style="padding:4px 12px;border-radius:100px;font-size:0.65rem;font-weight:600;'
+        f'letter-spacing:0.06em;text-transform:uppercase;'
+        f'background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);color:#A78BFA;">'
+        f'Ask Anything</span>'
+        f'<span style="padding:4px 12px;border-radius:100px;font-size:0.65rem;font-weight:600;'
+        f'letter-spacing:0.06em;text-transform:uppercase;'
+        f'background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.2);color:#5EEAD4;">'
+        f'Earn XP</span></div>'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -448,6 +648,8 @@ def render_leader_selection():
                 st.session_state.tts_pending = False
                 st.session_state.last_user_text = None
                 st.session_state.last_leader_text = None
+                st.session_state.last_user_tts_text = None
+                st.session_state.last_leader_tts_text = None
                 st.session_state.last_leader_audio_b64 = None
                 st.session_state.leaders_chatted_set.add(lid)
                 st.rerun()
@@ -484,8 +686,8 @@ def render_chat_screen():
     if st.session_state.tts_pending:
         st.session_state.tts_pending = False
         tts_dialogue = (
-            st.session_state.last_user_text,
-            st.session_state.last_leader_text,
+            st.session_state.last_user_tts_text,
+            st.session_state.last_leader_tts_text,
         )
 
     # ── Top bar: logo + header + exchange count ──
@@ -515,7 +717,7 @@ def render_chat_screen():
     with left_col:
         render_active_avatar(
             leader,
-            is_speaking=leader_speaking or bool(tts_dialogue),
+            is_speaking=False,
         )
 
         st.markdown(
@@ -549,6 +751,8 @@ def render_chat_screen():
             st.session_state.tts_pending = False
             st.session_state.last_user_text = None
             st.session_state.last_leader_text = None
+            st.session_state.last_user_tts_text = None
+            st.session_state.last_leader_tts_text = None
             st.session_state.last_leader_audio_b64 = None
             st.session_state.who_speaking = None
             st.rerun()
@@ -560,7 +764,7 @@ def render_chat_screen():
         render_user_active_avatar(
             avatar_path=st.session_state.user_avatar_path,
             user_name=user_name,
-            is_speaking=user_speaking or bool(tts_dialogue),
+            is_speaking=False,
         )
 
         st.markdown(
@@ -666,9 +870,13 @@ def render_chat_screen():
                 st.session_state.tts_pending = True
                 st.session_state.last_user_text = user_input
                 st.session_state.last_leader_text = full_response
+                st.session_state.last_user_tts_text = _clean_tts_text(user_input)
+                st.session_state.last_leader_tts_text = _clean_tts_text(full_response)
 
                 st.session_state.last_leader_audio_b64 = None
-                audio_bytes = voice_client.synthesize_for_leader(leader, full_response)
+                audio_bytes = voice_client.synthesize_for_leader(
+                    leader, st.session_state.last_leader_tts_text
+                )
                 if audio_bytes:
                     st.session_state.last_leader_audio_b64 = base64.b64encode(audio_bytes).decode()
 
