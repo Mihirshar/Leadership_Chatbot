@@ -22,6 +22,11 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+EDGE_FALLBACK_VOICES = (
+    "en-IN-PrabhatNeural",
+    "en-US-GuyNeural",
+)
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Edge TTS  (FREE — no API key required)
 # ═══════════════════════════════════════════════════════════════════════════
@@ -52,16 +57,26 @@ def edge_synthesize(text: str, voice: str) -> bytes | None:
     if not _edge_tts_available():
         logger.warning("edge-tts not installed — pip install edge-tts")
         return None
-    try:
-        loop = asyncio.new_event_loop()
-        audio = loop.run_until_complete(_edge_synthesize_async(text, voice))
-        loop.close()
-        if audio:
-            logger.info("Edge TTS: %d bytes, voice=%s", len(audio), voice)
-        return audio or None
-    except Exception as exc:
-        logger.error("Edge TTS failed: %s", exc)
+    clean_text = (text or "").strip()
+    if not clean_text:
         return None
+
+    # Try requested voice first, then known-good fallbacks.
+    candidates = [voice] if voice else []
+    candidates.extend(v for v in EDGE_FALLBACK_VOICES if v and v != voice)
+
+    for candidate in candidates:
+        loop = asyncio.new_event_loop()
+        try:
+            audio = loop.run_until_complete(_edge_synthesize_async(clean_text, candidate))
+            if audio:
+                logger.info("Edge TTS: %d bytes, voice=%s", len(audio), candidate)
+                return audio
+        except Exception as exc:
+            logger.warning("Edge TTS failed for voice %s: %s", candidate, exc)
+        finally:
+            loop.close()
+    return None
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -162,10 +177,16 @@ def eleven_synthesize(
 
 
 def _ensure_eleven_voice(leader_config: dict) -> str | None:
+    # Priority: explicit eleven_voice_id in YAML → cached clone → clone from sample
+    explicit = leader_config.get("eleven_voice_id", "")
+    if explicit:
+        return explicit
+
     lid = leader_config["id"]
     vid = get_eleven_voice_id(lid)
     if vid:
         return vid
+
     sample = leader_config.get("voice_sample", "")
     if sample and Path(sample).exists():
         return clone_voice(lid, leader_config["name"], sample)
@@ -182,18 +203,22 @@ def synthesize_for_leader(leader_config: dict, text: str) -> bytes | None:
     Tries ElevenLabs (cloned voice) first, then Edge TTS (free neural voice).
     Returns MP3 bytes or None (caller should fall back to browser TTS).
     """
+    clean_text = (text or "").strip()
+    if not clean_text:
+        return None
+
     # Tier 1: ElevenLabs cloned voice
     if elevenlabs_available():
         vid = _ensure_eleven_voice(leader_config)
         if vid:
-            audio = eleven_synthesize(text, vid)
+            audio = eleven_synthesize(clean_text, vid)
             if audio:
                 return audio
 
     # Tier 2: Edge TTS (free)
     edge_voice = leader_config.get("voice_id", "")
     if edge_voice:
-        audio = edge_synthesize(text, edge_voice)
+        audio = edge_synthesize(clean_text, edge_voice)
         if audio:
             return audio
 
