@@ -16,7 +16,7 @@ EXL_LOGO_B64 = get_image_base64("assets/ui/exl_logo.png")
 
 st.set_page_config(
     page_title="EXL Leadership AI",
-    page_icon="https://em-content.zobj.net/source/apple/391/high-voltage_26a1.png",
+    page_icon="assets/ui/favicon.png",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
