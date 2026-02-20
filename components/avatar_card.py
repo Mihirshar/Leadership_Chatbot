@@ -171,6 +171,7 @@ def render_active_avatar(
     leader: dict,
     is_speaking: bool = False, # Ignored, controlled by JS
     speak_text: str | None = None,
+    video_url: str | None = None,
 ):
     accent = leader.get("accent_color", "#F26522")
     avatar_img = leader.get("avatar_image", "")
@@ -179,7 +180,12 @@ def render_active_avatar(
     glow = hex_to_rgba(accent, 0.35)
     glow2 = hex_to_rgba(accent, 0.15)
 
-    if b64:
+    if video_url:
+        img_tag = (
+            f'<video src="{video_url}" autoplay playsinline '
+            f'style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></video>'
+        )
+    elif b64:
         img_tag = (
             f'<img src="data:image/png;base64,{b64}" '
             f'style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'

@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 from typing import Generator
 from google import genai
 from google.genai import types
@@ -8,6 +9,9 @@ MODEL = "gemini-2.5-flash"
 
 def _get_client() -> genai.Client:
     api_key = os.environ.get("GOOGLE_API_KEY", "")
+    if not api_key and "GOOGLE_API_KEY" in st.secrets:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+
     if not api_key:
         raise ValueError(
             "GOOGLE_API_KEY not set. Please set it as an environment variable."

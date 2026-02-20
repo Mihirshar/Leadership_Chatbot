@@ -260,6 +260,7 @@ def init_state():
         "user_original_photo": None,
         "user_generated_avatar": None,
         "who_speaking": None,
+        "video_url": None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -669,6 +670,7 @@ def render_leader_selection():
                 st.session_state.last_leader_tts_text = None
                 st.session_state.last_leader_audio_b64 = None
                 st.session_state.leaders_chatted_set.add(lid)
+                st.session_state.video_url = None
                 st.rerun()
 
     if st.session_state.xp > 0:
@@ -735,6 +737,7 @@ def render_chat_screen():
         render_active_avatar(
             leader,
             is_speaking=False,
+            video_url=st.session_state.video_url,
         )
 
         st.markdown(
@@ -867,6 +870,7 @@ def render_chat_screen():
         if user_input:
             st.session_state.who_speaking = "user"
             st.session_state.conversation.append({"role": "user", "content": user_input})
+            st.session_state.video_url = None
 
             # 1. Render user message immediately INSIDE container
             with chat_container:
@@ -923,6 +927,16 @@ def render_chat_screen():
                 )
                 if audio_bytes:
                     st.session_state.last_leader_audio_b64 = base64.b64encode(audio_bytes).decode()
+                    
+                    # Generate lip-sync video if Fal.ai is configured
+                    if voice_client.fal_available():
+                        with st.spinner("Generating lip-sync video..."):
+                            video_url = voice_client.generate_lip_sync(
+                                audio_bytes,
+                                leader.get("avatar_image", "")
+                            )
+                            if video_url:
+                                st.session_state.video_url = video_url
 
             st.rerun()
 

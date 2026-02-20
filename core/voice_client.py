@@ -16,6 +16,9 @@ import io
 import json
 import logging
 import os
+import base64
+import streamlit as st
+import fal_client
 from pathlib import Path
 
 import requests
@@ -88,7 +91,10 @@ VOICE_CACHE = Path("config/voice_ids.json")
 
 
 def _eleven_key() -> str:
-    return os.environ.get("ELEVENLABS_API_KEY", "")
+    key = os.environ.get("ELEVENLABS_API_KEY", "")
+    if not key and "ELEVENLABS_API_KEY" in st.secrets:
+        key = st.secrets["ELEVENLABS_API_KEY"]
+    return key
 
 
 def elevenlabs_available() -> bool:
@@ -223,4 +229,73 @@ def synthesize_for_leader(leader_config: dict, text: str) -> bytes | None:
             return audio
 
     # Tier 3: None → JS speechSynthesis fallback in browser
+    return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Fal.ai (Lip Sync Video Generation)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _fal_key() -> str:
+    key = os.environ.get("FAL_KEY", "")
+    if not key and "FAL_KEY" in st.secrets:
+        key = st.secrets["FAL_KEY"]
+    return key
+
+
+def fal_available() -> bool:
+    return bool(_fal_key())
+
+
+def generate_lip_sync(audio_bytes: bytes, image_path: str) -> str | None:
+    """Generate a lip-sync video using Fal.ai (audio-driven).
+
+    Returns the URL of the generated video or None if failed/unavailable.
+    """
+    if not fal_available():
+        return None
+
+    # Check if image exists
+    if not Path(image_path).exists():
+        logger.warning(f"Lip-sync skipped: Image not found at {image_path}")
+        return None
+
+    try:
+        # Set API key for this call
+        os.environ["FAL_KEY"] = _fal_key()
+
+        # Prepare data URIs
+        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+        audio_url = f"data:audio/mpeg;base64,{audio_b64}"
+
+        with open(image_path, "rb") as f:
+            img_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+        # Detect mime type roughly from extension
+        ext = Path(image_path).suffix.lower().replace(".", "")
+        if ext == "jpg": ext = "jpeg"
+        image_url = f"data:image/{ext};base64,{img_b64}"
+
+        # Submit to Fal.ai (using sadtalker model which is cost-effective)
+        # We can switch to fal-ai/kling-video/v1/audio-driven for higher quality if needed
+        handler = fal_client.submit(
+            "fal-ai/sadtalker",
+            arguments={
+                "source_image_url": image_url,
+                "driven_audio_url": audio_url,
+            }
+        )
+
+        # Wait for result
+        result = handler.get()
+
+        if result and "video" in result and "url" in result["video"]:
+            video_url = result["video"]["url"]
+            logger.info(f"Fal.ai lip-sync generated: {video_url}")
+            return video_url
+
+    except Exception as e:
+        logger.error(f"Fal.ai lip-sync failed: {e}")
+        return None
+
     return None

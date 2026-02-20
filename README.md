@@ -4,7 +4,7 @@ An interactive Streamlit application for the **EXL AI Summit 2026**. Visitors ch
 
 ## Features
 
-- **4 Leadership Avatars** — each with distinct personality, speech patterns, and values built from YAML configs
+- **3 Leadership Avatars** — each with distinct personality, speech patterns, and values built from YAML configs (Vikram, Anil, Ishraq)
 - **AI Avatar Generation** — visitors snap a photo and Gemini creates a stylized avatar on the spot
 - **Voice Output (TTS)** — leaders respond with audio using cloned voices (ElevenLabs) or free neural voices (Edge TTS)
 - **Gamification** — XP points, leveling, and badges earned through conversations
@@ -16,7 +16,9 @@ An interactive Streamlit application for the **EXL AI Summit 2026**. Visitors ch
 Clawdbot/
 ├── app.py                        # Main Streamlit application
 ├── requirements.txt              # Python dependencies
-├── .streamlit/config.toml        # Streamlit theme & server config
+├── .streamlit/
+│   ├── config.toml               # Streamlit theme & server config
+│   └── secrets.toml              # API keys (local dev - DO NOT COMMIT)
 │
 ├── core/
 │   ├── llm_client.py             # Google Gemini 2.5 Flash — leader responses
@@ -37,15 +39,16 @@ Clawdbot/
 │   └── leaders/                  # One YAML per leader (personality, values, speech patterns)
 │       ├── vikram.yaml
 │       ├── anil.yaml
-│       ├── nalin.yaml
-│       └── anita.yaml
+│       └── ishraq.yaml
 │
 ├── assets/
-│   ├── avatars/                  # Leader avatar images (PNG)
-│   │   └── visitors/             # Auto-generated visitor avatars
-│   ├── images/                   # Source photos of leaders
-│   ├── voices/                   # Voice samples for cloning (MP3, 30s-3min each)
-│   └── ui/                       # Logo and UI assets
+│   ├── leaders/                  # Leader-specific assets
+│   │   ├── anil/                 # e.g., avatar.png, source.png
+│   │   ├── vikram/
+│   │   └── ishraq/
+│   ├── visitors/                 # Auto-generated visitor avatars
+│   ├── ui/                       # Logo and UI assets
+│   └── voices/                   # Voice samples for cloning
 │
 └── docs/
     └── leadership_personality_questionnaire.md
@@ -74,40 +77,37 @@ venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
 
-## Environment Variables
+## Configuration & Secrets (API Keys)
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GOOGLE_API_KEY` | Yes | Google Gemini API key ([aistudio.google.com](https://aistudio.google.com)) |
-| `ELEVENLABS_API_KEY` | No | ElevenLabs key for cloned voices ([elevenlabs.io](https://elevenlabs.io)) |
+You can provide API keys via a local secrets file or environment variables.
+
+### Option 1: Local Secrets File (Recommended for Local Dev)
+1. Create a file named `.streamlit/secrets.toml` in the project root.
+2. Add your keys:
+   ```toml
+   GOOGLE_API_KEY = "your_google_api_key_here"
+   ELEVENLABS_API_KEY = "your_elevenlabs_key_here"  # Optional
+   ```
+3. **Note:** This file is ignored by Git to keep your keys safe.
+
+### Option 2: Streamlit Cloud (For Deployment)
+1. Go to your app dashboard on Streamlit Cloud.
+2. Click **Settings** > **Secrets**.
+3. Paste the TOML content into the text area:
+   ```toml
+   GOOGLE_API_KEY = "your_google_api_key_here"
+   ELEVENLABS_API_KEY = "your_elevenlabs_key_here"
+   ```
+
+### Option 3: Environment Variables
+You can still set keys in your terminal session if you prefer:
+- Windows (PowerShell): `$env:GOOGLE_API_KEY="your-key"`
+- Mac/Linux: `export GOOGLE_API_KEY="your-key"`
 
 ## Running the App
 
-### Windows (PowerShell)
-
-```powershell
-$env:GOOGLE_API_KEY="your-google-api-key"
-streamlit run app.py
-```
-
-### Windows (CMD)
-
-```cmd
-set GOOGLE_API_KEY=your-google-api-key
-streamlit run app.py
-```
-
-### Mac / Linux
-
 ```bash
-export GOOGLE_API_KEY="your-google-api-key"
 streamlit run app.py
-```
-
-### With ElevenLabs (optional, for cloned voices)
-
-```powershell
-$env:GOOGLE_API_KEY="your-google-api-key"; $env:ELEVENLABS_API_KEY="your-elevenlabs-key"; streamlit run app.py
 ```
 
 The app opens at **http://localhost:8501**.
@@ -122,18 +122,14 @@ The app uses a 3-tier TTS priority chain. No configuration needed — it picks t
 | 2 | **Edge TTS** | **Free** | Microsoft Neural voices (Indian English) | Works out of the box, no key needed |
 | 3 | **Browser TTS** | Free | Basic browser voices | Automatic fallback if Edge TTS fails |
 
-Each leader's YAML config has:
-- `voice_id` — Microsoft Neural voice name used by Edge TTS (e.g., `en-IN-PrabhatNeural`)
-- `voice_sample` — path to audio clip for ElevenLabs cloning (optional)
-
 ## Adding / Editing Leaders
 
 Each leader is defined by a YAML file in `config/leaders/`. To add a new leader:
 
-1. Create `config/leaders/your_leader.yaml` following the existing format
-2. Add their source photo to `assets/leaders/`
-3. Add their avatar image to `assets/leaders/`
-4. *(Optional)* Add a voice sample to `assets/voices/`
+1. Create `config/leaders/your_leader.yaml` following the existing format.
+2. Create a folder `assets/leaders/your_leader/`.
+3. Add their **avatar image** (stylized) and **source image** (photo) to that folder.
+4. *(Optional)* Add a voice sample to `assets/voices/`.
 
 Key YAML fields:
 
@@ -141,8 +137,8 @@ Key YAML fields:
 id: leader_id
 name: Full Name
 role: Title
-avatar_image: assets/leaders/leader_avatar.png
-source_image: assets/leaders/leader_source.jpg
+avatar_image: assets/leaders/leader_id/avatar.png
+source_image: assets/leaders/leader_id/source.png
 accent_color: "#F26522"
 voice_id: "en-IN-PrabhatNeural"       # Edge TTS voice
 voice_sample: "assets/voices/leader.mp3"  # ElevenLabs cloning (optional)
@@ -192,7 +188,7 @@ Badges unlock based on questions asked and leaders chatted with. XP levels progr
 
 | Issue | Fix |
 |-------|-----|
-| `GOOGLE_API_KEY not set` | Set the env var before running `streamlit run` |
+| `GOOGLE_API_KEY not set` | Add it to `.streamlit/secrets.toml` or set env var. |
 | Port 8501 already in use | `Stop-Process -Id (Get-NetTCPConnection -LocalPort 8501).OwningProcess -Force` |
 | Avatar generation returns original photo | Check Gemini API quota; Pillow fallback is used when Gemini is unavailable |
 | No audio playing | Check browser autoplay settings; try clicking the page first |
