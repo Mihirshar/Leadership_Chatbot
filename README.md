@@ -1,16 +1,18 @@
 # EXL Leadership AI — Gamified Avatar Platform
 
-An interactive Streamlit application for the **EXL AI Summit 2026**. Visitors choose a leadership avatar, ask questions, and get personality-driven responses — complete with AI-generated avatars, text-to-speech voices, and a gamified XP system.
+An interactive Streamlit application for the **EXL AI Summit 2026**. Visitors choose a leadership avatar, ask questions, and get personality-driven responses — complete with AI-generated avatars, cloned voices, and lip-sync videos.
 
-## Features
+## ✨ Key Features
 
-- **3 Leadership Avatars** — each with distinct personality, speech patterns, and values built from YAML configs (Vikram, Anil, Ishraq)
-- **AI Avatar Generation** — visitors snap a photo and Gemini creates a stylized avatar on the spot
-- **Voice Output (TTS)** — leaders respond with audio using cloned voices (ElevenLabs) or free neural voices (Edge TTS)
-- **Gamification** — XP points, leveling, and badges earned through conversations
-- **Scenario Library** — pre-built leadership scenarios visitors can tap to start a conversation
+- **3 Leadership Avatars** — Vikram, Anil, and Ishraq, each with distinct personalities, speech patterns, and values built from YAML configs.
+- **AI Avatar Booth** — Visitors snap a photo and Gemini creates a stylized, futuristic avatar on the spot.
+- **Voice Cloning (ElevenLabs)** — Leaders respond with their actual cloned voices for hyper-realism.
+- **Lip-Sync Video (Fal.ai)** — Avatars speak with perfect lip synchronization using the `sadtalker` model.
+- **Gamification** — Users earn XP, level up from "Observer" to "Oracle", and unlock badges.
+- **Scenario Library** — Pre-built leadership scenarios to jumpstart conversations.
+- **Dynamic UI** — Cinematic animations, floating orbs, and a "living" interface that reacts to the conversation.
 
-## Project Structure
+## 📂 Project Structure
 
 ```
 Clawdbot/
@@ -21,179 +23,141 @@ Clawdbot/
 │   └── secrets.toml              # API keys (local dev - DO NOT COMMIT)
 │
 ├── core/
-│   ├── llm_client.py             # Google Gemini 2.5 Flash — leader responses
-│   ├── voice_client.py           # TTS: ElevenLabs (cloned) → Edge TTS (free) → browser fallback
-│   ├── avatar_generator.py       # AI avatar generation from photos
-│   ├── prompt_builder.py         # Builds system prompts from leader YAML
-│   └── personality_engine.py     # Loads leader configs, XP levels, badges
+│   ├── llm_client.py             # Google Gemini 2.5 Flash — intelligence & responses
+│   ├── voice_client.py           # TTS & Video: ElevenLabs + Fal.ai + Edge TTS fallback
+│   ├── avatar_generator.py       # AI avatar generation (Gemini Image / Pillow)
+│   ├── prompt_builder.py         # System prompt engineering
+│   └── personality_engine.py     # Leader config loader & gamification logic
 │
 ├── components/
-│   ├── avatar_card.py            # Avatar rendering, TTS dialogue, animations
-│   ├── chat_ui.py                # Chat message bubbles, welcome screen
-│   └── leaderboard.py            # XP panel, badges, insight cards
-│
-├── utils/
-│   └── helpers.py                # Image utils, scenarios, color helpers
+│   ├── avatar_card.py            # Avatar/Video rendering & animations
+│   ├── chat_ui.py                # Chat interface & bubbles
+│   └── leaderboard.py            # XP panel & badge system
 │
 ├── config/
-│   └── leaders/                  # One YAML per leader (personality, values, speech patterns)
+│   └── leaders/                  # Personality definitions (YAML)
 │       ├── vikram.yaml
 │       ├── anil.yaml
 │       └── ishraq.yaml
 │
 ├── assets/
 │   ├── leaders/                  # Leader-specific assets
-│   │   ├── anil/                 # e.g., avatar.png, source.png
-│   │   ├── vikram/
+│   │   ├── anil/                 #   ├── avatar.png
+│   │   ├── vikram/               #   └── source.png
 │   │   └── ishraq/
-│   ├── visitors/                 # Auto-generated visitor avatars
-│   ├── ui/                       # Logo and UI assets
-│   └── voices/                   # Voice samples for cloning
+│   ├── visitors/                 # Generated user avatars saved here
+│   ├── ui/                       # Logos, favicons, background assets
+│   └── voices/                   # (Optional) MP3 samples for voice cloning
 │
 └── docs/
     └── leadership_personality_questionnaire.md
 ```
 
-## Prerequisites
+## 🚀 Prerequisites
 
-- **Python 3.11+**
-- **Google API Key** — for Gemini 2.5 Flash (chat + avatar generation)
-- **ElevenLabs API Key** *(optional)* — for cloned leader voices
-- **Edge TTS** works out of the box with no API key (free Microsoft neural voices)
+- **Python 3.10+**
+- **Google API Key** — for Gemini 2.5 Flash (Intelligence + Avatar Gen)
+- **ElevenLabs API Key** — for Voice Cloning (Text-to-Speech)
+- **Fal.ai Key** — for Lip-Sync Video Generation
 
-## Installation
+## 🛠️ Installation
 
-```bash
-# Clone the repo
-git clone <repo-url>
-cd Clawdbot
+1. **Clone the repository:**
+   ```bash
+   git clone <repo-url>
+   cd Clawdbot
+   ```
 
-# Create a virtual environment (recommended)
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # Mac/Linux
+2. **Create a virtual environment (recommended):**
+   ```bash
+   python -m venv venv
+   # Windows:
+   venv\Scripts\activate
+   # Mac/Linux:
+   source venv/bin/activate
+   ```
 
-# Install dependencies
-pip install -r requirements.txt
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## 🔑 Configuration & Secrets
+
+You must provide API keys for the app to function fully.
+
+### Option 1: Secrets File (Recommended)
+Create a file named `.streamlit/secrets.toml` in the root directory:
+
+```toml
+# Required: Intelligence & Avatar Generation
+GOOGLE_API_KEY = "your_google_api_key"
+
+# Required: Voice Cloning (ElevenLabs)
+ELEVENLABS_API_KEY = "your_elevenlabs_key"
+
+# Required: Lip-Sync Video (Fal.ai)
+FAL_KEY = "your_fal_key"
 ```
 
-## Configuration & Secrets (API Keys)
+### Option 2: Environment Variables
+You can also set these in your terminal before running the app (see "Running the App" below).
 
-You can provide API keys via a local secrets file or environment variables.
+## ▶️ Running the App
 
-### Option 1: Local Secrets File (Recommended for Local Dev)
-1. Create a file named `.streamlit/secrets.toml` in the project root.
-2. Add your keys:
-   ```toml
-   GOOGLE_API_KEY = "your_google_api_key_here"
-   ELEVENLABS_API_KEY = "your_elevenlabs_key_here"  # Optional
-   ```
-3. **Note:** This file is ignored by Git to keep your keys safe.
-
-### Option 2: Streamlit Cloud (For Deployment)
-1. Go to your app dashboard on Streamlit Cloud.
-2. Click **Settings** > **Secrets**.
-3. Paste the TOML content into the text area:
-   ```toml
-   GOOGLE_API_KEY = "your_google_api_key_here"
-   ELEVENLABS_API_KEY = "your_elevenlabs_key_here"
-   ```
-
-### Option 3: Environment Variables
-You can still set keys in your terminal session if you prefer:
-- Windows (PowerShell): `$env:GOOGLE_API_KEY="your-key"`
-- Mac/Linux: `export GOOGLE_API_KEY="your-key"`
-
-## Running the App
-
+### Standard Run (using secrets.toml)
 ```bash
 streamlit run app.py
 ```
 
-The app opens at **http://localhost:8501**.
+### Run with Environment Variables (PowerShell)
+If you don't want to create a secrets file, run this single command line:
 
-## Voice System — How It Works
-
-The app uses a 3-tier TTS priority chain. No configuration needed — it picks the best available option automatically:
-
-| Tier | Engine | Cost | Voice Quality | Setup |
-|------|--------|------|---------------|-------|
-| 1 | **ElevenLabs** | ~$99/mo (Pro) | Cloned from real voice samples | Set `ELEVENLABS_API_KEY` + drop MP3 samples in `assets/voices/` |
-| 2 | **Edge TTS** | **Free** | Microsoft Neural voices (Indian English) | Works out of the box, no key needed |
-| 3 | **Browser TTS** | Free | Basic browser voices | Automatic fallback if Edge TTS fails |
-
-## Adding / Editing Leaders
-
-Each leader is defined by a YAML file in `config/leaders/`. To add a new leader:
-
-1. Create `config/leaders/your_leader.yaml` following the existing format.
-2. Create a folder `assets/leaders/your_leader/`.
-3. Add their **avatar image** (stylized) and **source image** (photo) to that folder.
-4. *(Optional)* Add a voice sample to `assets/voices/`.
-
-Key YAML fields:
-
-```yaml
-id: leader_id
-name: Full Name
-role: Title
-avatar_image: assets/leaders/leader_id/avatar.png
-source_image: assets/leaders/leader_id/source.png
-accent_color: "#F26522"
-voice_id: "en-IN-PrabhatNeural"       # Edge TTS voice
-voice_sample: "assets/voices/leader.mp3"  # ElevenLabs cloning (optional)
-
-personality:
-  thinking_style: "..."
-  emotional_baseline: "..."
-  communication_style: "..."
-  risk_appetite: "..."
-  core_values: [...]
-  leadership_philosophy: "..."
-  decision_framework: "..."
-  conflict_handling: "..."
-  motivational_drivers: [...]
-
-speech_patterns:
-  - "Often says '...'"
-  - "Starts sentences with '...'"
-
-forbidden_topics:
-  - Confidential data
-  - Political opinions
+```powershell
+$env:GOOGLE_API_KEY="your_key"; $env:ELEVENLABS_API_KEY="your_key"; $env:FAL_KEY="your_key"; streamlit run app.py
 ```
 
-Use the questionnaire in `docs/leadership_personality_questionnaire.md` to gather real personality data from leaders.
+### Run with Environment Variables (Mac/Linux)
+```bash
+export GOOGLE_API_KEY="your_key"
+export ELEVENLABS_API_KEY="your_key"
+export FAL_KEY="your_key"
+streamlit run app.py
+```
 
-## Gamification
+The app will open at **http://localhost:8501**.
 
-| XP Action | Points |
-|-----------|--------|
-| Ask a question | +50 XP |
+## 🧠 How It Works
 
-Badges unlock based on questions asked and leaders chatted with. XP levels progress from **Curious Mind** to **Visionary Leader**.
+### 1. Voice & Video Pipeline
+The app automatically selects the best available method:
 
-## Tech Stack
+| Feature | Service | Fallback |
+|---------|---------|----------|
+| **Voice** | **ElevenLabs** (Cloned) | Edge TTS (Free Neural) → Browser TTS |
+| **Video** | **Fal.ai** (SadTalker) | Static Avatar Image |
 
-| Component | Technology |
-|-----------|-----------|
-| Frontend | Streamlit, custom CSS/HTML |
-| LLM | Google Gemini 2.5 Flash |
-| Avatar Generation | Gemini 2.5 Flash Image + Pillow fallback |
-| TTS (free) | Edge TTS (Microsoft Neural) |
-| TTS (premium) | ElevenLabs (voice cloning) |
-| Config | YAML personality files |
+### 2. Gamification System
+- **XP**: Earn 50 XP per question.
+- **Levels**: Observer → Apprentice → Strategist → Advisor → Visionary → Oracle.
+- **Badges**: Unlocked by asking questions (Curious Mind, Deep Thinker) or talking to multiple leaders (Explorer, Champion).
 
-## Troubleshooting
+## ➕ Adding New Leaders
 
-| Issue | Fix |
-|-------|-----|
-| `GOOGLE_API_KEY not set` | Add it to `.streamlit/secrets.toml` or set env var. |
-| Port 8501 already in use | `Stop-Process -Id (Get-NetTCPConnection -LocalPort 8501).OwningProcess -Force` |
-| Avatar generation returns original photo | Check Gemini API quota; Pillow fallback is used when Gemini is unavailable |
-| No audio playing | Check browser autoplay settings; try clicking the page first |
-| Edge TTS fails | Requires internet connection; falls back to browser TTS automatically |
+1. Create a new YAML file in `config/leaders/` (e.g., `new_leader.yaml`).
+2. Create a folder `assets/leaders/new_leader/`.
+3. Add their **avatar.png** and **source.png** to that folder.
+4. Update the YAML to point to these files and set their `voice_id` (ElevenLabs ID).
 
-## License
+## ❓ Troubleshooting
 
-Internal — EXL AI Summit 2026.
+| Issue | Solution |
+|-------|----------|
+| **App won't start** | Ensure you're in the `Clawdbot` directory and `venv` is active. |
+| **"Module not found"** | Run `pip install -r requirements.txt` again. |
+| **Video not playing** | Fal.ai generation might be pending or failed. Check console logs. |
+| **Voice is robotic** | Check `ELEVENLABS_API_KEY`. If missing, it falls back to Edge TTS. |
+| **Avatar gen fails** | Check `GOOGLE_API_KEY` quota. It falls back to a filter-based generator. |
+
+## 📄 License
+Internal — **EXL AI Summit 2026**.
