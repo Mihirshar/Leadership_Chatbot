@@ -9,6 +9,7 @@ def render_tts_dialogue(
     leader_text: str,
     leader_name: str = "Leader",
     leader_audio_b64: str | None = None,
+    has_video: bool = False,
 ):
     """Single hidden component: speaks the user question (fast), then leader response.
 
@@ -18,6 +19,7 @@ def render_tts_dialogue(
     """
     safe_user = json.dumps((user_text or "")[:400])
     safe_leader = json.dumps((leader_text or "")[:2000])
+    use_video = "true" if has_video else "false"
     
     # JavaScript to sync audio playback with UI animations
     js_logic = f"""
@@ -28,11 +30,37 @@ def render_tts_dialogue(
 
         var userEl = window.parent.document.getElementById('user-avatar-wrapper');
         var leaderEl = window.parent.document.getElementById('leader-avatar-wrapper');
+        var leaderVideo = window.parent.document.getElementById('leader-video');
+        var hasVideo = {use_video};
 
         function setSpeaking(el, speaking) {{
             if (!el) return;
             if (speaking) el.classList.add('speaking');
             else el.classList.remove('speaking');
+        }}
+
+        function showPlayButton(retryFn) {{
+            if (!leaderEl) return;
+            // Remove existing if any
+            var existing = leaderEl.querySelector('.audio-retry-btn');
+            if (existing) existing.remove();
+
+            var btn = document.createElement('div');
+            btn.className = 'audio-retry-btn';
+            btn.innerHTML = '🔊 Tap to Listen';
+            btn.style.cssText = 'position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(242,101,34,0.9);color:white;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;z-index:100;box-shadow:0 4px 15px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);animation:fadeIn 0.3s ease-out;';
+            
+            btn.onclick = function(e) {{
+                e.stopPropagation();
+                e.preventDefault();
+                retryFn();
+                btn.remove();
+            }};
+            
+            if (getComputedStyle(leaderEl).position === 'static') {{
+                leaderEl.style.position = 'relative';
+            }}
+            leaderEl.appendChild(btn);
         }}
 
         // Ensure clean state initially
@@ -48,17 +76,51 @@ def render_tts_dialogue(
             setTimeout(playLeader, 350); 
         }};
 
+        // Handle iOS silent mode / autoplay block for User TTS
+        uQ.onerror = function(e) {{
+            console.warn("User TTS blocked/error", e);
+            // Even if user TTS fails, try to play leader
+            setTimeout(playLeader, 350);
+        }};
+
         function playLeader() {{
             setSpeaking(leaderEl, true);
-            var audioData = "{leader_audio_b64 or ''}";
             
+            // Scenario A: Lip-Sync Video is present
+            if (hasVideo && leaderVideo) {{
+                leaderVideo.muted = false;
+                leaderVideo.currentTime = 0;
+                var promise = leaderVideo.play();
+                
+                if (promise !== undefined) {{
+                    promise.catch(function(e) {{
+                        console.warn("Video autoplay blocked", e);
+                        setSpeaking(leaderEl, false);
+                        showPlayButton(playLeader);
+                    }});
+                }}
+                
+                leaderVideo.onended = function() {{ setSpeaking(leaderEl, false); }};
+                return;
+            }}
+
+            // Scenario B: Audio Only
+            var audioData = "{leader_audio_b64 or ''}";
             if (audioData) {{
                 var audio = new Audio("data:audio/mpeg;base64," + audioData);
                 audio.onended = function() {{ setSpeaking(leaderEl, false); }};
-                audio.play().catch(function(e) {{
-                    console.error("Audio play failed, falling back to TTS", e);
-                    fallbackTTS();
-                }});
+                
+                var promise = audio.play();
+                if (promise !== undefined) {{
+                    promise.catch(function(e) {{
+                        console.warn("Audio autoplay blocked", e);
+                        setSpeaking(leaderEl, false);
+                        showPlayButton(function() {{
+                            setSpeaking(leaderEl, true);
+                            audio.play();
+                        }});
+                    }});
+                }}
             }} else {{
                 fallbackTTS();
             }}
@@ -70,6 +132,8 @@ def render_tts_dialogue(
             uA.rate = 0.95; uA.pitch = 0.88; uA.lang = 'en';
             uA.onstart = function() {{ setSpeaking(leaderEl, true); }};
             uA.onend = function() {{ setSpeaking(leaderEl, false); }};
+            
+            // TTS might also need user interaction on iOS
             synth.speak(uA);
         }}
 
@@ -181,8 +245,9 @@ def render_active_avatar(
     glow2 = hex_to_rgba(accent, 0.15)
 
     if video_url:
+        # Added id="leader-video" for JS targeting
         img_tag = (
-            f'<video src="{video_url}" autoplay playsinline '
+            f'<video id="leader-video" src="{video_url}" autoplay playsinline '
             f'style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></video>'
         )
     elif b64:

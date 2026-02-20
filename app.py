@@ -859,6 +859,7 @@ def render_chat_screen():
                 leader_text=tts_dialogue[1],
                 leader_name=leader["name"],
                 leader_audio_b64=st.session_state.last_leader_audio_b64,
+                has_video=bool(st.session_state.video_url),
             )
 
         user_input = st.chat_input(f"Ask {leader['name']} anything...")
