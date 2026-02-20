@@ -877,7 +877,11 @@ def render_chat_screen():
                 )
 
                 # 2. Show "thinking" loader INSIDE container
-                with st.chat_message("assistant"):
+                leader_avatar = leader.get("avatar_image")
+                if not leader_avatar or not Path(leader_avatar).exists():
+                    leader_avatar = None
+                
+                with st.chat_message("assistant", avatar=leader_avatar):
                     st.markdown(
                         f'<div style="display:flex;align-items:center;gap:12px;height:40px;">'
                         f'<div style="display:flex;">'
