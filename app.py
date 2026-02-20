@@ -191,6 +191,23 @@ hr{border-color:var(--border)!important;}
 @keyframes cardBorderFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes floatIcon{0%,100%{transform:translateY(0) rotate(0deg);opacity:0.12}50%{transform:translateY(-15px) rotate(10deg);opacity:0.2}}
 
+/* ── Loading pulse (vibe match) ── */
+@keyframes vibePulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.95); box-shadow: 0 0 0 rgba(242,101,34,0); }
+    50% { opacity: 1; transform: scale(1.05); box-shadow: 0 0 20px rgba(242,101,34,0.3); }
+}
+.vibe-loader {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #F26522;
+    border-radius: 50%;
+    margin: 0 3px;
+    animation: vibePulse 1.2s infinite ease-in-out both;
+}
+.vibe-loader:nth-child(1) { animation-delay: -0.32s; background: #F26522; }
+.vibe-loader:nth-child(2) { animation-delay: -0.16s; background: #8B5CF6; }
+.vibe-loader:nth-child(3) { animation-delay: 0s; background: #2DD4BF; }
+
 /* ── Dynamic Lip Sync (JS Driven) ── */
 .avatar-wrapper.speaking .avatar-ring {
     animation: speakingPulse 0.4s ease-in-out infinite alternate !important;
@@ -425,13 +442,13 @@ def render_consent():
 
         # Glassmorphism disclaimer card (animated border)
         st.markdown(
-            '<div style="animation:fadeInUp 1.2s ease-out 0.45s both; margin-bottom: 30px;">'
+            '<div style="animation:fadeInUp 1.2s ease-out 0.45s both; margin-bottom: 24px;">'
             '<div style="position:relative;border-radius:20px;padding:2px;">'
             '<div style="position:absolute;inset:0;border-radius:20px;'
             'background:linear-gradient(135deg,rgba(242,101,34,0.3),rgba(139,92,246,0.2),rgba(45,212,191,0.2),rgba(242,101,34,0.3));'
             'background-size:300% 300%;animation:cardBorderFlow 6s ease infinite;"></div>'
             '<div style="position:relative;background:rgba(6,6,11,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);'
-            'border-radius:18px;padding:20px 24px;">'
+            'border-radius:18px;padding:20px 24px;margin-bottom:20px;">'
             '<p style="margin:0;font-size:0.82rem;color:rgba(255,255,255,0.55);line-height:1.6;">'
             '<strong style="color:rgba(255,255,255,0.7);">Disclaimer:</strong> '
             'This experience features AI-simulated avatars inspired by leadership personas. '
@@ -850,6 +867,29 @@ def render_chat_screen():
         if user_input:
             st.session_state.who_speaking = "user"
             st.session_state.conversation.append({"role": "user", "content": user_input})
+
+            # 1. Render user message immediately INSIDE container
+            with chat_container:
+                render_chat_message(
+                    "user",
+                    user_input,
+                    user_avatar_path=st.session_state.user_avatar_path
+                )
+
+                # 2. Show "thinking" loader INSIDE container
+                with st.chat_message("assistant"):
+                    st.markdown(
+                        f'<div style="display:flex;align-items:center;gap:12px;height:40px;">'
+                        f'<div style="display:flex;">'
+                        f'<div class="vibe-loader"></div>'
+                        f'<div class="vibe-loader"></div>'
+                        f'<div class="vibe-loader"></div>'
+                        f'</div>'
+                        f'<span style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-style:italic;letter-spacing:0.05em;">'
+                        f'{leader["name"].split()[0]} is thinking...</span>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
 
             history = [
                 {"role": m["role"], "content": m["content"]}

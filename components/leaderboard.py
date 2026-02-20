@@ -10,7 +10,7 @@ def render_xp_panel(xp: int, questions_asked: int, leaders_chatted: int, total_l
     progress = min(max(progress, 0.0), 1.0)
 
     st.markdown(
-        f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
         f'<span style="font-family:Syne,sans-serif;font-size:0.8rem;font-weight:700;color:#F0F0F8;">LEVEL {level}</span>'
         f'<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06);padding:2px 10px;border-radius:20px;">{title}</span>'
         f'</div>',
@@ -20,7 +20,7 @@ def render_xp_panel(xp: int, questions_asked: int, leaders_chatted: int, total_l
     st.progress(progress)
 
     st.markdown(
-        f'<div style="display:flex;justify-content:space-between;font-size:0.7rem;color:rgba(255,255,255,0.35);margin-top:-8px;margin-bottom:12px;">'
+        f'<div style="display:flex;justify-content:space-between;font-size:0.7rem;color:rgba(255,255,255,0.35);margin-top:4px;margin-bottom:16px;">'
         f'<span>{xp} XP</span><span>{next_threshold} XP</span></div>',
         unsafe_allow_html=True,
     )
