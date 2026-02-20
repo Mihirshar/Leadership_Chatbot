@@ -169,7 +169,7 @@ def generate_avatar(photo_bytes: bytes) -> tuple[bytes, str]:
 def save_avatar(avatar_bytes: bytes, name: str) -> str:
     """Save avatar bytes to disk and return the file path."""
     safe = "".join(c if c.isalnum() else "_" for c in name.strip().lower()) or "visitor"
-    out_dir = Path("assets/avatars/visitors")
+    out_dir = Path("assets/visitors")
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"{safe}_avatar.png"
     path.write_bytes(avatar_bytes)

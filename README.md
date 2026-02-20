@@ -131,8 +131,8 @@ Each leader's YAML config has:
 Each leader is defined by a YAML file in `config/leaders/`. To add a new leader:
 
 1. Create `config/leaders/your_leader.yaml` following the existing format
-2. Add their source photo to `assets/images/`
-3. Add their avatar image to `assets/avatars/`
+2. Add their source photo to `assets/leaders/`
+3. Add their avatar image to `assets/leaders/`
 4. *(Optional)* Add a voice sample to `assets/voices/`
 
 Key YAML fields:
@@ -141,8 +141,8 @@ Key YAML fields:
 id: leader_id
 name: Full Name
 role: Title
-avatar_image: assets/avatars/leader_avatar.png
-source_image: assets/images/leader_source.jpg
+avatar_image: assets/leaders/leader_avatar.png
+source_image: assets/leaders/leader_source.jpg
 accent_color: "#F26522"
 voice_id: "en-IN-PrabhatNeural"       # Edge TTS voice
 voice_sample: "assets/voices/leader.mp3"  # ElevenLabs cloning (optional)

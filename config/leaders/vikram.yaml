@@ -1,8 +1,8 @@
 id: vikram_man_singh
 name: Vikram Singh
 role: Chief Executive Officer
-avatar_image: assets/avatars/vikram_avatar.png
-source_image: assets/images/vikram_source.jpg
+avatar_image: assets/leaders/vikram/avatar.png
+source_image: assets/leaders/vikram/source.png
 accent_color: "#F26522"
 emoji: "\U0001F451"
 voice_id: "en-IN-PrabhatNeural"

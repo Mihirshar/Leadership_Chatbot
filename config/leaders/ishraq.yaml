@@ -1,8 +1,8 @@
 id: ishraq_ahmad
 name: Ishraq Ahmad
 role: Leader
-avatar_image: assets/avatars/ishraq_avatar.png
-source_image: assets/images/ishraq_source.png
+avatar_image: assets/leaders/ishraq/avatar.png
+source_image: assets/leaders/ishraq/source.png
 accent_color: "#3B82F6"
 emoji: "\U0001F4BC"
 voice_id: "en-IN-PrabhatNeural"

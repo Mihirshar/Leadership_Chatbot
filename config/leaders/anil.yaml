@@ -1,8 +1,8 @@
 id: anil_asnani
 name: Anil Asnani
 role: Vice President
-avatar_image: assets/avatars/anil_avatar.png
-source_image: assets/images/anil_source.png
+avatar_image: assets/leaders/anil/avatar.png
+source_image: assets/leaders/anil/source.png
 accent_color: "#22C55E"
 emoji: "\U0001F3AF"
 voice_id: "en-IN-MadhurNeural"

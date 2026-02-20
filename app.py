@@ -460,7 +460,7 @@ def render_consent():
 # ---------------------------------------------------------------------------
 def _save_user_photo(photo_bytes: bytes, name: str) -> str:
     safe_name = "".join(c if c.isalnum() else "_" for c in name.strip().lower()) or "visitor"
-    out_dir = Path("assets/avatars/visitors")
+    out_dir = Path("assets/visitors")
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{safe_name}.png"
     out_path.write_bytes(photo_bytes)
