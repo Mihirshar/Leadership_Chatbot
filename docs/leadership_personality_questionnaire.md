@@ -1,6 +1,6 @@
 # EXL Leadership AI — Personality Questionnaire
 
-**For:** Vikram / Anil / Nalin / Anita
+**For:** Vikram / Anil / Ishraq
 **Time:** 5-7 minutes
 **Purpose:** We're building your AI avatar for the EXL AI Summit 2026. It will talk to visitors the way *you* would. Answer honestly in your own words — the more specific, the better.
 
