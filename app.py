@@ -255,6 +255,7 @@ def init_state():
         "last_user_tts_text": None,
         "last_leader_tts_text": None,
         "last_leader_audio_b64": None,
+        "last_user_audio_b64": None,
         "user_name": "",
         "user_avatar_path": None,
         "user_original_photo": None,
@@ -859,6 +860,7 @@ def render_chat_screen():
                 leader_text=tts_dialogue[1],
                 leader_name=leader["name"],
                 leader_audio_b64=st.session_state.last_leader_audio_b64,
+                user_audio_b64=st.session_state.last_user_audio_b64,
                 has_video=bool(st.session_state.video_url),
             )
 
@@ -923,13 +925,22 @@ def render_chat_screen():
                 st.session_state.last_leader_tts_text = _clean_tts_text(full_response)
 
                 st.session_state.last_leader_audio_b64 = None
+                st.session_state.last_user_audio_b64 = None
+
+                # Generate user question audio (Edge TTS, free)
+                user_audio = voice_client.synthesize_user_text(
+                    st.session_state.last_user_tts_text
+                )
+                if user_audio:
+                    st.session_state.last_user_audio_b64 = base64.b64encode(user_audio).decode()
+
+                # Generate leader response audio (ElevenLabs → Edge TTS)
                 audio_bytes = voice_client.synthesize_for_leader(
                     leader, st.session_state.last_leader_tts_text
                 )
                 if audio_bytes:
                     st.session_state.last_leader_audio_b64 = base64.b64encode(audio_bytes).decode()
                     
-                    # Generate lip-sync video if Fal.ai is configured
                     if voice_client.fal_available():
                         with st.spinner("Generating lip-sync video..."):
                             video_url = voice_client.generate_lip_sync(

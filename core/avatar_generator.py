@@ -50,10 +50,21 @@ Output a single polished avatar image suitable for use in an interactive AI boot
 """
 
 
+def _get_api_key() -> str:
+    """Get Google API key from st.secrets or environment."""
+    try:
+        import streamlit as st
+        if "GOOGLE_API_KEY" in st.secrets:
+            return st.secrets["GOOGLE_API_KEY"]
+    except Exception:
+        pass
+    return os.environ.get("GOOGLE_API_KEY", "")
+
+
 def _gemini_generate(photo_bytes: bytes) -> bytes | None:
     """Attempt avatar generation via Gemini 2.5 Flash Image model."""
-    api_key = os.environ.get("GOOGLE_API_KEY", "")
-    if not api_key:
+    api_key = _get_api_key()
+    if not api_key or api_key == "your_google_api_key_here":
         log.warning("GOOGLE_API_KEY not set — skipping Gemini avatar generation")
         return None
 

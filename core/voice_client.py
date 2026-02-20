@@ -18,10 +18,15 @@ import logging
 import os
 import base64
 import streamlit as st
-import fal_client
 from pathlib import Path
 
 import requests
+
+try:
+    import replicate
+    REPLICATE_AVAILABLE = True
+except ImportError:
+    REPLICATE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +170,12 @@ def eleven_synthesize(
             json={
                 "text": text[:2500],
                 "model_id": model,
-                "voice_settings": {"stability": 0.55, "similarity_boost": 0.80, "style": 0.3},
+                "voice_settings": {
+                    "stability": 0.60,
+                    "similarity_boost": 0.87,
+                    "style": 0.25,
+                    "speed": 0.9,
+                },
             },
             timeout=30,
             stream=True,
@@ -232,70 +242,82 @@ def synthesize_for_leader(leader_config: dict, text: str) -> bytes | None:
     return None
 
 
+USER_VOICE = "en-US-ChristopherNeural"
+
+
+def synthesize_user_text(text: str) -> bytes | None:
+    """Generate TTS audio for the user's question.
+
+    Uses Edge TTS with a clear, neutral English voice.
+    Returns MP3 bytes or None.
+    """
+    clean_text = (text or "").strip()
+    if not clean_text:
+        return None
+    return edge_synthesize(clean_text, USER_VOICE)
+
+
 # ═══════════════════════════════════════════════════════════════════════════
-# Fal.ai (Lip Sync Video Generation)
+# Replicate (Lip Sync Video Generation via SadTalker)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _fal_key() -> str:
-    key = os.environ.get("FAL_KEY", "")
-    if not key and "FAL_KEY" in st.secrets:
-        key = st.secrets["FAL_KEY"]
-    return key
+def _replicate_token() -> str:
+    token = os.environ.get("REPLICATE_API_TOKEN", "")
+    if not token and "REPLICATE_API_TOKEN" in st.secrets:
+        token = st.secrets["REPLICATE_API_TOKEN"]
+    return token
 
 
 def fal_available() -> bool:
-    return bool(_fal_key())
+    """Check if lip-sync is available (now uses Replicate instead of Fal.ai)."""
+    return REPLICATE_AVAILABLE and bool(_replicate_token())
 
 
 def generate_lip_sync(audio_bytes: bytes, image_path: str) -> str | None:
-    """Generate a lip-sync video using Fal.ai (audio-driven).
+    """Generate a lip-sync video using Replicate's SadTalker model.
 
     Returns the URL of the generated video or None if failed/unavailable.
     """
     if not fal_available():
         return None
 
-    # Check if image exists
     if not Path(image_path).exists():
         logger.warning(f"Lip-sync skipped: Image not found at {image_path}")
         return None
 
     try:
-        # Set API key for this call
-        os.environ["FAL_KEY"] = _fal_key()
+        os.environ["REPLICATE_API_TOKEN"] = _replicate_token()
 
-        # Prepare data URIs
         audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
-        audio_url = f"data:audio/mpeg;base64,{audio_b64}"
+        audio_uri = f"data:audio/mpeg;base64,{audio_b64}"
 
         with open(image_path, "rb") as f:
             img_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-        # Detect mime type roughly from extension
         ext = Path(image_path).suffix.lower().replace(".", "")
-        if ext == "jpg": ext = "jpeg"
-        image_url = f"data:image/{ext};base64,{img_b64}"
+        if ext == "jpg":
+            ext = "jpeg"
+        image_uri = f"data:image/{ext};base64,{img_b64}"
 
-        # Submit to Fal.ai (using sadtalker model which is cost-effective)
-        # We can switch to fal-ai/kling-video/v1/audio-driven for higher quality if needed
-        handler = fal_client.submit(
-            "fal-ai/sadtalker",
-            arguments={
-                "source_image_url": image_url,
-                "driven_audio_url": audio_url,
+        logger.info("Submitting lip-sync job to Replicate (SadTalker)...")
+
+        output = replicate.run(
+            "cjwbw/sadtalker:3aa3dac9353cc4d6bd62a8f95957bd844003b401ca4e4a9b33baa574c549d376",
+            input={
+                "source_image": image_uri,
+                "driven_audio": audio_uri,
+                "enhancer": "gfpgan",
+                "preprocess": "crop",
             }
         )
 
-        # Wait for result
-        result = handler.get()
-
-        if result and "video" in result and "url" in result["video"]:
-            video_url = result["video"]["url"]
-            logger.info(f"Fal.ai lip-sync generated: {video_url}")
+        if output:
+            video_url = str(output)
+            logger.info(f"Replicate lip-sync generated: {video_url}")
             return video_url
 
     except Exception as e:
-        logger.error(f"Fal.ai lip-sync failed: {e}")
+        logger.error(f"Replicate lip-sync failed: {e}")
         return None
 
     return None

@@ -9,19 +9,19 @@ def render_tts_dialogue(
     leader_text: str,
     leader_name: str = "Leader",
     leader_audio_b64: str | None = None,
+    user_audio_b64: str | None = None,
     has_video: bool = False,
 ):
-    """Single hidden component: speaks the user question (fast), then leader response.
+    """Single hidden component: speaks the user question, then leader response.
 
-    If leader_audio_b64 (base64-encoded MP3 from ElevenLabs) is provided,
-    the leader's reply is played with the cloned voice via <audio>.
-    Otherwise falls back to browser speechSynthesis for both.
+    Both user and leader audio can be server-generated (Edge TTS / ElevenLabs).
+    Falls back to browser speechSynthesis only if no audio bytes are available.
     """
     safe_user = json.dumps((user_text or "")[:400])
     safe_leader = json.dumps((leader_text or "")[:2000])
     use_video = "true" if has_video else "false"
+    has_user_audio = "true" if user_audio_b64 else "false"
     
-    # JavaScript to sync audio playback with UI animations
     js_logic = f"""
     <script>
     (function(){{
@@ -32,6 +32,7 @@ def render_tts_dialogue(
         var leaderEl = window.parent.document.getElementById('leader-avatar-wrapper');
         var leaderVideo = window.parent.document.getElementById('leader-video');
         var hasVideo = {use_video};
+        var hasUserAudio = {has_user_audio};
 
         function setSpeaking(el, speaking) {{
             if (!el) return;
@@ -39,15 +40,14 @@ def render_tts_dialogue(
             else el.classList.remove('speaking');
         }}
 
-        function showPlayButton(retryFn) {{
-            if (!leaderEl) return;
-            // Remove existing if any
-            var existing = leaderEl.querySelector('.audio-retry-btn');
+        function showPlayButton(targetEl, retryFn, label) {{
+            if (!targetEl) return;
+            var existing = targetEl.querySelector('.audio-retry-btn');
             if (existing) existing.remove();
 
             var btn = document.createElement('div');
             btn.className = 'audio-retry-btn';
-            btn.innerHTML = '🔊 Tap to Listen';
+            btn.innerHTML = label || '🔊 Tap to Listen';
             btn.style.cssText = 'position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(242,101,34,0.9);color:white;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;z-index:100;box-shadow:0 4px 15px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);animation:fadeIn 0.3s ease-out;';
             
             btn.onclick = function(e) {{
@@ -57,68 +57,83 @@ def render_tts_dialogue(
                 btn.remove();
             }};
             
-            if (getComputedStyle(leaderEl).position === 'static') {{
-                leaderEl.style.position = 'relative';
+            if (getComputedStyle(targetEl).position === 'static') {{
+                targetEl.style.position = 'relative';
             }}
-            leaderEl.appendChild(btn);
+            targetEl.appendChild(btn);
         }}
 
-        // Ensure clean state initially
         setSpeaking(userEl, false);
         setSpeaking(leaderEl, false);
 
-        var uQ = new SpeechSynthesisUtterance({safe_user});
-        uQ.rate = 1.25; uQ.pitch = 1.05; uQ.lang = 'en';
-
-        uQ.onstart = function() {{ setSpeaking(userEl, true); }};
-        uQ.onend = function() {{ 
-            setSpeaking(userEl, false); 
-            setTimeout(playLeader, 350); 
-        }};
-
-        // Handle iOS silent mode / autoplay block for User TTS
-        uQ.onerror = function(e) {{
-            console.warn("User TTS blocked/error", e);
-            // Even if user TTS fails, try to play leader
-            setTimeout(playLeader, 350);
-        }};
+        function playUser() {{
+            if (hasUserAudio) {{
+                var userAudio = new Audio("data:audio/mpeg;base64,{user_audio_b64 or ''}");
+                userAudio.onplay = function() {{ setSpeaking(userEl, true); }};
+                userAudio.onended = function() {{
+                    setSpeaking(userEl, false);
+                    setTimeout(playLeader, 350);
+                }};
+                var p = userAudio.play();
+                if (p !== undefined) {{
+                    p.catch(function(e) {{
+                        console.warn("User audio autoplay blocked", e);
+                        setSpeaking(userEl, false);
+                        showPlayButton(userEl, function() {{
+                            setSpeaking(userEl, true);
+                            userAudio.play();
+                        }}, '🔊 Tap to Hear Question');
+                    }});
+                }}
+            }} else if (synth && {safe_user}.length > 0) {{
+                var uQ = new SpeechSynthesisUtterance({safe_user});
+                uQ.rate = 1.25; uQ.pitch = 1.05; uQ.lang = 'en';
+                uQ.onstart = function() {{ setSpeaking(userEl, true); }};
+                uQ.onend = function() {{
+                    setSpeaking(userEl, false);
+                    setTimeout(playLeader, 350);
+                }};
+                uQ.onerror = function() {{
+                    setSpeaking(userEl, false);
+                    setTimeout(playLeader, 350);
+                }};
+                synth.speak(uQ);
+            }} else {{
+                playLeader();
+            }}
+        }}
 
         function playLeader() {{
             setSpeaking(leaderEl, true);
             
-            // Scenario A: Lip-Sync Video is present
             if (hasVideo && leaderVideo) {{
                 leaderVideo.muted = false;
                 leaderVideo.currentTime = 0;
                 var promise = leaderVideo.play();
-                
                 if (promise !== undefined) {{
                     promise.catch(function(e) {{
                         console.warn("Video autoplay blocked", e);
                         setSpeaking(leaderEl, false);
-                        showPlayButton(playLeader);
+                        showPlayButton(leaderEl, playLeader, '🔊 Tap to Listen');
                     }});
                 }}
-                
                 leaderVideo.onended = function() {{ setSpeaking(leaderEl, false); }};
                 return;
             }}
 
-            // Scenario B: Audio Only
             var audioData = "{leader_audio_b64 or ''}";
             if (audioData) {{
                 var audio = new Audio("data:audio/mpeg;base64," + audioData);
                 audio.onended = function() {{ setSpeaking(leaderEl, false); }};
-                
                 var promise = audio.play();
                 if (promise !== undefined) {{
                     promise.catch(function(e) {{
-                        console.warn("Audio autoplay blocked", e);
+                        console.warn("Leader audio autoplay blocked", e);
                         setSpeaking(leaderEl, false);
-                        showPlayButton(function() {{
+                        showPlayButton(leaderEl, function() {{
                             setSpeaking(leaderEl, true);
                             audio.play();
-                        }});
+                        }}, '🔊 Tap to Listen');
                     }});
                 }}
             }} else {{
@@ -132,16 +147,10 @@ def render_tts_dialogue(
             uA.rate = 0.95; uA.pitch = 0.88; uA.lang = 'en';
             uA.onstart = function() {{ setSpeaking(leaderEl, true); }};
             uA.onend = function() {{ setSpeaking(leaderEl, false); }};
-            
-            // TTS might also need user interaction on iOS
             synth.speak(uA);
         }}
 
-        if (synth && {safe_user}.length > 0) {{
-            synth.speak(uQ);
-        }} else {{
-            playLeader();
-        }}
+        playUser();
     }})();
     </script>
     """
