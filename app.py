@@ -425,7 +425,7 @@ def render_consent():
 
         # Glassmorphism disclaimer card (animated border)
         st.markdown(
-            '<div style="animation:fadeInUp 1.2s ease-out 0.45s both;">'
+            '<div style="animation:fadeInUp 1.2s ease-out 0.45s both; margin-bottom: 30px;">'
             '<div style="position:relative;border-radius:20px;padding:2px;">'
             '<div style="position:absolute;inset:0;border-radius:20px;'
             'background:linear-gradient(135deg,rgba(242,101,34,0.3),rgba(139,92,246,0.2),rgba(45,212,191,0.2),rgba(242,101,34,0.3));'
