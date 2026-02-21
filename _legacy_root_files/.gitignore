@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# Generated at runtime
+config/voice_ids.json
+assets/leaders/visitors/
+assets/audio/
+assets/videos/
+weights/
+
+# IDE
+.vscode/
+.idea/
+*.swp

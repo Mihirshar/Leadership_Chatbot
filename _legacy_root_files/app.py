@@ -16,7 +16,7 @@ EXL_LOGO_B64 = get_image_base64("assets/ui/exl_logo.png")
 
 st.set_page_config(
     page_title="EXL Leadership AI",
-    page_icon="assets/ui/favicon.png",
+    page_icon="https://em-content.zobj.net/source/apple/391/high-voltage_26a1.png",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -190,49 +190,6 @@ hr{border-color:var(--border)!important;}
 @keyframes constellationPulse{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:0.8;transform:scale(1.5)}}
 @keyframes cardBorderFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes floatIcon{0%,100%{transform:translateY(0) rotate(0deg);opacity:0.12}50%{transform:translateY(-15px) rotate(10deg);opacity:0.2}}
-
-/* ── Loading pulse (vibe match) ── */
-@keyframes vibePulse {
-    0%, 100% { opacity: 0.3; transform: scale(0.95); box-shadow: 0 0 0 rgba(242,101,34,0); }
-    50% { opacity: 1; transform: scale(1.05); box-shadow: 0 0 20px rgba(242,101,34,0.3); }
-}
-.vibe-loader {
-    display: inline-block;
-    width: 8px; height: 8px;
-    background: #F26522;
-    border-radius: 50%;
-    margin: 0 3px;
-    animation: vibePulse 1.2s infinite ease-in-out both;
-}
-.vibe-loader:nth-child(1) { animation-delay: -0.32s; background: #F26522; }
-.vibe-loader:nth-child(2) { animation-delay: -0.16s; background: #8B5CF6; }
-.vibe-loader:nth-child(3) { animation-delay: 0s; background: #2DD4BF; }
-
-/* ── Dynamic Lip Sync (JS Driven) ── */
-.avatar-wrapper.speaking .avatar-ring {
-    animation: speakingPulse 0.4s ease-in-out infinite alternate !important;
-    border-color: #4ADE80 !important;
-    box-shadow: 0 0 35px rgba(74,222,128,0.5), 0 0 70px rgba(74,222,128,0.2) !important;
-    transform: scale(1.02);
-}
-.avatar-wrapper.speaking img {
-    animation: lipSync 0.15s ease-in-out infinite alternate;
-}
-@keyframes lipSync { 0% { transform: scale(1); } 100% { transform: scale(1, 0.98); } }
-
-.avatar-wrapper.speaking .wave-bar {
-    animation: soundWave 0.5s ease-in-out infinite !important;
-    opacity: 1 !important;
-    background: #4ADE80 !important;
-}
-.avatar-wrapper.speaking .status-text { color: #4ADE80 !important; }
-.avatar-wrapper.speaking .status-text span { display: none; }
-.avatar-wrapper.speaking .status-text::after { content: "SPEAKING"; }
-
-/* Initial state overrides to support JS toggling */
-.avatar-wrapper .avatar-ring { transition: all 0.3s ease; }
-.avatar-wrapper .wave-bar { transition: all 0.3s ease; }
-.avatar-wrapper .status-text { transition: color 0.3s ease; }
 </style>""", unsafe_allow_html=True)
 
 
@@ -255,13 +212,11 @@ def init_state():
         "last_user_tts_text": None,
         "last_leader_tts_text": None,
         "last_leader_audio_b64": None,
-        "last_user_audio_b64": None,
         "user_name": "",
         "user_avatar_path": None,
         "user_original_photo": None,
         "user_generated_avatar": None,
         "who_speaking": None,
-        "video_url": None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -287,8 +242,6 @@ def _clean_tts_text(text: str) -> str:
     t = re.sub(r"^\s*>\s+", "", t, flags=re.MULTILINE)
     # Remove common special characters used in markdown
     t = re.sub(r"[*_~#|<>]", " ", t)
-    # Remove quotes
-    t = re.sub(r'["\']', "", t)
     # Collapse whitespace
     t = re.sub(r"\s+", " ", t).strip()
     return t
@@ -450,7 +403,7 @@ def render_consent():
             'background:linear-gradient(135deg,rgba(242,101,34,0.3),rgba(139,92,246,0.2),rgba(45,212,191,0.2),rgba(242,101,34,0.3));'
             'background-size:300% 300%;animation:cardBorderFlow 6s ease infinite;"></div>'
             '<div style="position:relative;background:rgba(6,6,11,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);'
-            'border-radius:18px;padding:20px 24px;margin-bottom:20px;">'
+            'border-radius:18px;padding:20px 24px;">'
             '<p style="margin:0;font-size:0.82rem;color:rgba(255,255,255,0.55);line-height:1.6;">'
             '<strong style="color:rgba(255,255,255,0.7);">Disclaimer:</strong> '
             'This experience features AI-simulated avatars inspired by leadership personas. '
@@ -671,7 +624,6 @@ def render_leader_selection():
                 st.session_state.last_leader_tts_text = None
                 st.session_state.last_leader_audio_b64 = None
                 st.session_state.leaders_chatted_set.add(lid)
-                st.session_state.video_url = None
                 st.rerun()
 
     if st.session_state.xp > 0:
@@ -737,8 +689,7 @@ def render_chat_screen():
     with left_col:
         render_active_avatar(
             leader,
-            is_speaking=False,
-            video_url=st.session_state.video_url,
+            is_speaking=leader_speaking or bool(tts_dialogue),
         )
 
         st.markdown(
@@ -785,7 +736,7 @@ def render_chat_screen():
         render_user_active_avatar(
             avatar_path=st.session_state.user_avatar_path,
             user_name=user_name,
-            is_speaking=False,
+            is_speaking=user_speaking or bool(tts_dialogue),
         )
 
         st.markdown(
@@ -860,8 +811,6 @@ def render_chat_screen():
                 leader_text=tts_dialogue[1],
                 leader_name=leader["name"],
                 leader_audio_b64=st.session_state.last_leader_audio_b64,
-                user_audio_b64=st.session_state.last_user_audio_b64,
-                has_video=bool(st.session_state.video_url),
             )
 
         user_input = st.chat_input(f"Ask {leader['name']} anything...")
@@ -873,34 +822,6 @@ def render_chat_screen():
         if user_input:
             st.session_state.who_speaking = "user"
             st.session_state.conversation.append({"role": "user", "content": user_input})
-            st.session_state.video_url = None
-
-            # 1. Render user message immediately INSIDE container
-            with chat_container:
-                render_chat_message(
-                    "user",
-                    user_input,
-                    user_avatar_path=st.session_state.user_avatar_path
-                )
-
-                # 2. Show "thinking" loader INSIDE container
-                leader_avatar = leader.get("avatar_image")
-                if not leader_avatar or not Path(leader_avatar).exists():
-                    leader_avatar = None
-                
-                with st.chat_message("assistant", avatar=leader_avatar):
-                    st.markdown(
-                        f'<div style="display:flex;align-items:center;gap:12px;height:40px;">'
-                        f'<div style="display:flex;">'
-                        f'<div class="vibe-loader"></div>'
-                        f'<div class="vibe-loader"></div>'
-                        f'<div class="vibe-loader"></div>'
-                        f'</div>'
-                        f'<span style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-style:italic;letter-spacing:0.05em;">'
-                        f'{leader["name"].split()[0]} is thinking...</span>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
 
             history = [
                 {"role": m["role"], "content": m["content"]}
@@ -925,30 +846,11 @@ def render_chat_screen():
                 st.session_state.last_leader_tts_text = _clean_tts_text(full_response)
 
                 st.session_state.last_leader_audio_b64 = None
-                st.session_state.last_user_audio_b64 = None
-
-                # Generate user question audio (Edge TTS, free)
-                user_audio = voice_client.synthesize_user_text(
-                    st.session_state.last_user_tts_text
-                )
-                if user_audio:
-                    st.session_state.last_user_audio_b64 = base64.b64encode(user_audio).decode()
-
-                # Generate leader response audio (ElevenLabs → Edge TTS)
                 audio_bytes = voice_client.synthesize_for_leader(
                     leader, st.session_state.last_leader_tts_text
                 )
                 if audio_bytes:
                     st.session_state.last_leader_audio_b64 = base64.b64encode(audio_bytes).decode()
-                    
-                    if voice_client.lipsync_available():
-                        with st.spinner("Generating lip-sync video..."):
-                            video_url = voice_client.generate_lip_sync(
-                                audio_bytes,
-                                leader.get("avatar_image", "")
-                            )
-                            if video_url:
-                                st.session_state.video_url = video_url
 
             st.rerun()
 

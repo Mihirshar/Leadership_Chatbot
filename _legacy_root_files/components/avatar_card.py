@@ -9,19 +9,17 @@ def render_tts_dialogue(
     leader_text: str,
     leader_name: str = "Leader",
     leader_audio_b64: str | None = None,
-    user_audio_b64: str | None = None,
-    has_video: bool = False,
 ):
-    """Single hidden component: speaks the user question, then leader response.
+    """Single hidden component: speaks the user question (fast), then leader response.
 
-    Both user and leader audio can be server-generated (Edge TTS / ElevenLabs).
-    Falls back to browser speechSynthesis only if no audio bytes are available.
+    If leader_audio_b64 (base64-encoded MP3 from ElevenLabs) is provided,
+    the leader's reply is played with the cloned voice via <audio>.
+    Otherwise falls back to browser speechSynthesis for both.
     """
     safe_user = json.dumps((user_text or "")[:400])
     safe_leader = json.dumps((leader_text or "")[:2000])
-    use_video = "true" if has_video else "false"
-    has_user_audio = "true" if user_audio_b64 else "false"
     
+    # JavaScript to sync audio playback with UI animations
     js_logic = f"""
     <script>
     (function(){{
@@ -30,9 +28,6 @@ def render_tts_dialogue(
 
         var userEl = window.parent.document.getElementById('user-avatar-wrapper');
         var leaderEl = window.parent.document.getElementById('leader-avatar-wrapper');
-        var leaderVideo = window.parent.document.getElementById('leader-video');
-        var hasVideo = {use_video};
-        var hasUserAudio = {has_user_audio};
 
         function setSpeaking(el, speaking) {{
             if (!el) return;
@@ -40,107 +35,30 @@ def render_tts_dialogue(
             else el.classList.remove('speaking');
         }}
 
-        function showPlayButton(targetEl, retryFn, label) {{
-            if (!targetEl) return;
-            var existing = targetEl.querySelector('.audio-retry-btn');
-            if (existing) existing.remove();
-
-            var btn = document.createElement('div');
-            btn.className = 'audio-retry-btn';
-            btn.innerHTML = label || '🔊 Tap to Listen';
-            btn.style.cssText = 'position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(242,101,34,0.9);color:white;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;z-index:100;box-shadow:0 4px 15px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);animation:fadeIn 0.3s ease-out;';
-            
-            btn.onclick = function(e) {{
-                e.stopPropagation();
-                e.preventDefault();
-                retryFn();
-                btn.remove();
-            }};
-            
-            if (getComputedStyle(targetEl).position === 'static') {{
-                targetEl.style.position = 'relative';
-            }}
-            targetEl.appendChild(btn);
-        }}
-
+        // Ensure clean state initially
         setSpeaking(userEl, false);
         setSpeaking(leaderEl, false);
-        if (leaderVideo) {{
-            leaderVideo.pause();
-            leaderVideo.currentTime = 0;
-            leaderVideo.muted = true;
-        }}
 
-        function playUser() {{
-            if (hasUserAudio) {{
-                var userAudio = new Audio("data:audio/mpeg;base64,{user_audio_b64 or ''}");
-                userAudio.onplay = function() {{ setSpeaking(userEl, true); }};
-                userAudio.onended = function() {{
-                    setSpeaking(userEl, false);
-                    setTimeout(playLeader, 350);
-                }};
-                var p = userAudio.play();
-                if (p !== undefined) {{
-                    p.catch(function(e) {{
-                        console.warn("User audio autoplay blocked", e);
-                        setSpeaking(userEl, false);
-                        showPlayButton(userEl, function() {{
-                            setSpeaking(userEl, true);
-                            userAudio.play();
-                        }}, '🔊 Tap to Hear Question');
-                    }});
-                }}
-            }} else if (synth && {safe_user}.length > 0) {{
-                var uQ = new SpeechSynthesisUtterance({safe_user});
-                uQ.rate = 1.25; uQ.pitch = 1.05; uQ.lang = 'en';
-                uQ.onstart = function() {{ setSpeaking(userEl, true); }};
-                uQ.onend = function() {{
-                    setSpeaking(userEl, false);
-                    setTimeout(playLeader, 350);
-                }};
-                uQ.onerror = function() {{
-                    setSpeaking(userEl, false);
-                    setTimeout(playLeader, 350);
-                }};
-                synth.speak(uQ);
-            }} else {{
-                playLeader();
-            }}
-        }}
+        var uQ = new SpeechSynthesisUtterance({safe_user});
+        uQ.rate = 1.25; uQ.pitch = 1.05; uQ.lang = 'en';
+
+        uQ.onstart = function() {{ setSpeaking(userEl, true); }};
+        uQ.onend = function() {{ 
+            setSpeaking(userEl, false); 
+            setTimeout(playLeader, 350); 
+        }};
 
         function playLeader() {{
             setSpeaking(leaderEl, true);
-            
-            if (hasVideo && leaderVideo) {{
-                leaderVideo.muted = false;
-                leaderVideo.currentTime = 0;
-                var promise = leaderVideo.play();
-                if (promise !== undefined) {{
-                    promise.catch(function(e) {{
-                        console.warn("Video autoplay blocked", e);
-                        setSpeaking(leaderEl, false);
-                        showPlayButton(leaderEl, playLeader, '🔊 Tap to Listen');
-                    }});
-                }}
-                leaderVideo.onended = function() {{ setSpeaking(leaderEl, false); }};
-                return;
-            }}
-
             var audioData = "{leader_audio_b64 or ''}";
+            
             if (audioData) {{
                 var audio = new Audio("data:audio/mpeg;base64," + audioData);
                 audio.onended = function() {{ setSpeaking(leaderEl, false); }};
-                var promise = audio.play();
-                if (promise !== undefined) {{
-                    promise.catch(function(e) {{
-                        console.warn("Leader audio autoplay blocked", e);
-                        setSpeaking(leaderEl, false);
-                        showPlayButton(leaderEl, function() {{
-                            setSpeaking(leaderEl, true);
-                            audio.play();
-                        }}, '🔊 Tap to Listen');
-                    }});
-                }}
+                audio.play().catch(function(e) {{
+                    console.error("Audio play failed, falling back to TTS", e);
+                    fallbackTTS();
+                }});
             }} else {{
                 fallbackTTS();
             }}
@@ -155,7 +73,11 @@ def render_tts_dialogue(
             synth.speak(uA);
         }}
 
-        playUser();
+        if (synth && {safe_user}.length > 0) {{
+            synth.speak(uQ);
+        }} else {{
+            playLeader();
+        }}
     }})();
     </script>
     """
@@ -249,7 +171,6 @@ def render_active_avatar(
     leader: dict,
     is_speaking: bool = False, # Ignored, controlled by JS
     speak_text: str | None = None,
-    video_url: str | None = None,
 ):
     accent = leader.get("accent_color", "#F26522")
     avatar_img = leader.get("avatar_image", "")
@@ -258,13 +179,7 @@ def render_active_avatar(
     glow = hex_to_rgba(accent, 0.35)
     glow2 = hex_to_rgba(accent, 0.15)
 
-    if video_url:
-        # Added id="leader-video" for JS targeting
-        img_tag = (
-            f'<video id="leader-video" src="{video_url}" playsinline '
-            f'style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></video>'
-        )
-    elif b64:
+    if b64:
         img_tag = (
             f'<img src="data:image/png;base64,{b64}" '
             f'style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'
