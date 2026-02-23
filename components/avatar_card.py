@@ -339,7 +339,7 @@ def render_user_active_avatar(
     # Use max-width and responsive sizing for mobile
     html = (
         f'<div id="user-avatar-wrapper" class="avatar-wrapper" style="text-align:center;padding:8px 0 12px;">'
-        f'<div class="avatar-ring" style="width:min(220px, 100%);height:min(220px, 100%);border-radius:50%;border:4px solid {accent};'
+        f'<div class="avatar-ring" style="width:min(220px, 100%);aspect-ratio:1 / 1;border-radius:50%;border:4px solid {accent};'
         f'margin:0 auto 12px;overflow:hidden;'
         f'box-shadow:0 0 40px {glow},0 0 80px {glow2};">'
         f'{img_tag}</div>'
@@ -351,7 +351,8 @@ def render_user_active_avatar(
         f'<div class="wave-bar" style="width:4px;height:20px;border-radius:3px;background:{accent};transform-origin:center;animation-delay:0.48s;"></div>'
         f'</div>'
         f'<h2 style="margin:0 0 4px;font-family:Syne,sans-serif;font-size:1.4rem;font-weight:700;color:#F0F0F8;">{user_name}</h2>'
-        f'<p class="status-text" style="margin:0;font-size:0.8rem;color:rgba(255,255,255,0.3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em;"><span>LISTENING</span></p>'
+        f'<p style="margin:0 0 4px;font-size:0.85rem;color:{accent};font-weight:600;text-transform:uppercase;letter-spacing:0.06em;opacity:0;">USER</p>'
+        f'<p class="status-text" style="margin:0;font-size:0.75rem;color:rgba(255,255,255,0.3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em;"><span>LISTENING</span></p>'
         f'</div>'
     )
     st.markdown(html, unsafe_allow_html=True)
@@ -387,7 +388,7 @@ def render_active_avatar(
     # Use max-width and responsive sizing for mobile
     html = (
         f'<div id="leader-avatar-wrapper" class="avatar-wrapper" style="text-align:center;padding:8px 0 12px;">'
-        f'<div class="avatar-ring" style="width:min(220px, 100%);height:min(220px, 100%);border-radius:50%;border:4px solid {accent};'
+        f'<div class="avatar-ring" style="width:min(220px, 100%);aspect-ratio:1 / 1;border-radius:50%;border:4px solid {accent};'
         f'margin:0 auto 12px;overflow:hidden;'
         f'box-shadow:0 0 40px {glow},0 0 80px {glow2};">'
         f'{img_tag}</div>'
