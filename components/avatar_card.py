@@ -16,11 +16,14 @@ def render_tts_dialogue(
 
     Both user and leader audio can be server-generated (Edge TTS / ElevenLabs).
     Falls back to browser speechSynthesis only if no audio bytes are available.
+    
+    On mobile devices, always shows a play button since autoplay is blocked.
     """
     safe_user = json.dumps((user_text or "")[:400])
     safe_leader = json.dumps((leader_text or "")[:2000])
     use_video = "true" if has_video else "false"
     has_user_audio = "true" if user_audio_b64 else "false"
+    has_leader_audio = "true" if leader_audio_b64 else "false"
     
     js_logic = f"""
     <script>
@@ -33,11 +36,31 @@ def render_tts_dialogue(
         var leaderVideo = window.parent.document.getElementById('leader-video');
         var hasVideo = {use_video};
         var hasUserAudio = {has_user_audio};
+        var hasLeaderAudio = {has_leader_audio};
+        
+        // Detect mobile/touch devices
+        var isMobile = ('ontouchstart' in window) || 
+                       (navigator.maxTouchPoints > 0) || 
+                       (window.innerWidth <= 768);
+        
+        // Track active audio to prevent overlapping
+        var currentAudio = null;
 
         function setSpeaking(el, speaking) {{
             if (!el) return;
             if (speaking) el.classList.add('speaking');
             else el.classList.remove('speaking');
+        }}
+        
+        function stopCurrentAudio() {{
+            if (currentAudio) {{
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }}
+            if (synth) synth.cancel();
+            setSpeaking(userEl, false);
+            setSpeaking(leaderEl, false);
         }}
 
         function showPlayButton(targetEl, retryFn, label) {{
@@ -48,14 +71,26 @@ def render_tts_dialogue(
             var btn = document.createElement('div');
             btn.className = 'audio-retry-btn';
             btn.innerHTML = label || '🔊 Tap to Listen';
-            btn.style.cssText = 'position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(242,101,34,0.9);color:white;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;z-index:100;box-shadow:0 4px 15px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);animation:fadeIn 0.3s ease-out;';
+            btn.style.cssText = 'position:absolute;bottom:20px;left:50%;transform:translateX(-50%);' +
+                'background:linear-gradient(135deg,#F26522,#E85D26);color:white;' +
+                'padding:12px 24px;border-radius:25px;font-size:14px;font-weight:600;' +
+                'cursor:pointer;z-index:100;' +
+                'box-shadow:0 4px 20px rgba(242,101,34,0.5),0 0 40px rgba(242,101,34,0.2);' +
+                'border:2px solid rgba(255,255,255,0.3);' +
+                'animation:fadeIn 0.3s ease-out,idlePulse 2s ease-in-out infinite;' +
+                'text-shadow:0 1px 2px rgba(0,0,0,0.3);';
             
-            btn.onclick = function(e) {{
+            // Use both click and touchend for mobile compatibility
+            function handleTap(e) {{
                 e.stopPropagation();
                 e.preventDefault();
+                stopCurrentAudio();
                 retryFn();
                 btn.remove();
-            }};
+            }}
+            
+            btn.addEventListener('click', handleTap);
+            btn.addEventListener('touchend', handleTap);
             
             if (getComputedStyle(targetEl).position === 'static') {{
                 targetEl.style.position = 'relative';
@@ -74,9 +109,16 @@ def render_tts_dialogue(
         function playUser() {{
             if (hasUserAudio) {{
                 var userAudio = new Audio("data:audio/mpeg;base64,{user_audio_b64 or ''}");
+                currentAudio = userAudio;
                 userAudio.onplay = function() {{ setSpeaking(userEl, true); }};
                 userAudio.onended = function() {{
                     setSpeaking(userEl, false);
+                    currentAudio = null;
+                    setTimeout(playLeader, 350);
+                }};
+                userAudio.onerror = function() {{
+                    setSpeaking(userEl, false);
+                    currentAudio = null;
                     setTimeout(playLeader, 350);
                 }};
                 var p = userAudio.play();
@@ -84,13 +126,21 @@ def render_tts_dialogue(
                     p.catch(function(e) {{
                         console.warn("User audio autoplay blocked", e);
                         setSpeaking(userEl, false);
-                        showPlayButton(userEl, function() {{
-                            setSpeaking(userEl, true);
-                            userAudio.play();
-                        }}, '🔊 Tap to Hear Question');
+                        currentAudio = null;
+                        // On mobile, skip to leader audio with play button
+                        if (isMobile) {{
+                            showPlayButton(leaderEl, playLeaderWithInteraction, '🔊 Tap to Play Response');
+                        }} else {{
+                            showPlayButton(userEl, function() {{
+                                setSpeaking(userEl, true);
+                                currentAudio = userAudio;
+                                userAudio.play();
+                            }}, '🔊 Tap to Hear Question');
+                        }}
                     }});
                 }}
-            }} else if (synth && {safe_user}.length > 0) {{
+            }} else if (synth && {safe_user}.length > 0 && !isMobile) {{
+                // Only use speechSynthesis on desktop
                 var uQ = new SpeechSynthesisUtterance({safe_user});
                 uQ.rate = 1.25; uQ.pitch = 1.05; uQ.lang = 'en';
                 uQ.onstart = function() {{ setSpeaking(userEl, true); }};
@@ -107,6 +157,43 @@ def render_tts_dialogue(
                 playLeader();
             }}
         }}
+        
+        function playLeaderWithInteraction() {{
+            // Called after user interaction, so autoplay should work
+            setSpeaking(leaderEl, true);
+            
+            if (hasVideo && leaderVideo) {{
+                leaderVideo.muted = false;
+                leaderVideo.currentTime = 0;
+                leaderVideo.play().catch(function(e) {{
+                    console.warn("Video play failed even after interaction", e);
+                    setSpeaking(leaderEl, false);
+                }});
+                leaderVideo.onended = function() {{ setSpeaking(leaderEl, false); }};
+                return;
+            }}
+
+            var audioData = "{leader_audio_b64 or ''}";
+            if (audioData) {{
+                var audio = new Audio("data:audio/mpeg;base64," + audioData);
+                currentAudio = audio;
+                audio.onended = function() {{ 
+                    setSpeaking(leaderEl, false); 
+                    currentAudio = null;
+                }};
+                audio.onerror = function() {{
+                    setSpeaking(leaderEl, false);
+                    currentAudio = null;
+                }};
+                audio.play().catch(function(e) {{
+                    console.warn("Leader audio failed even after interaction", e);
+                    setSpeaking(leaderEl, false);
+                    currentAudio = null;
+                }});
+            }} else {{
+                fallbackTTS();
+            }}
+        }}
 
         function playLeader() {{
             setSpeaking(leaderEl, true);
@@ -119,7 +206,7 @@ def render_tts_dialogue(
                     promise.catch(function(e) {{
                         console.warn("Video autoplay blocked", e);
                         setSpeaking(leaderEl, false);
-                        showPlayButton(leaderEl, playLeader, '🔊 Tap to Listen');
+                        showPlayButton(leaderEl, playLeaderWithInteraction, '🔊 Tap to Play Response');
                     }});
                 }}
                 leaderVideo.onended = function() {{ setSpeaking(leaderEl, false); }};
@@ -129,16 +216,22 @@ def render_tts_dialogue(
             var audioData = "{leader_audio_b64 or ''}";
             if (audioData) {{
                 var audio = new Audio("data:audio/mpeg;base64," + audioData);
-                audio.onended = function() {{ setSpeaking(leaderEl, false); }};
+                currentAudio = audio;
+                audio.onended = function() {{ 
+                    setSpeaking(leaderEl, false); 
+                    currentAudio = null;
+                }};
+                audio.onerror = function() {{
+                    setSpeaking(leaderEl, false);
+                    currentAudio = null;
+                }};
                 var promise = audio.play();
                 if (promise !== undefined) {{
                     promise.catch(function(e) {{
                         console.warn("Leader audio autoplay blocked", e);
                         setSpeaking(leaderEl, false);
-                        showPlayButton(leaderEl, function() {{
-                            setSpeaking(leaderEl, true);
-                            audio.play();
-                        }}, '🔊 Tap to Listen');
+                        currentAudio = null;
+                        showPlayButton(leaderEl, playLeaderWithInteraction, '🔊 Tap to Play Response');
                     }});
                 }}
             }} else {{
@@ -147,7 +240,11 @@ def render_tts_dialogue(
         }}
 
         function fallbackTTS() {{
-            if (!synth) return;
+            if (!synth || isMobile) {{
+                // speechSynthesis often doesn't work well on mobile
+                setSpeaking(leaderEl, false);
+                return;
+            }}
             var uA = new SpeechSynthesisUtterance({safe_leader});
             uA.rate = 0.95; uA.pitch = 0.88; uA.lang = 'en';
             uA.onstart = function() {{ setSpeaking(leaderEl, true); }};
@@ -155,7 +252,18 @@ def render_tts_dialogue(
             synth.speak(uA);
         }}
 
-        playUser();
+        // On mobile, always show play button immediately
+        if (isMobile && (hasUserAudio || hasLeaderAudio || hasVideo)) {{
+            showPlayButton(leaderEl, function() {{
+                if (hasUserAudio) {{
+                    playUser();
+                }} else {{
+                    playLeaderWithInteraction();
+                }}
+            }}, '🔊 Tap to Play Audio');
+        }} else {{
+            playUser();
+        }}
     }})();
     </script>
     """
@@ -225,9 +333,10 @@ def render_user_active_avatar(
     glow2 = hex_to_rgba(accent, 0.15)
     
     # ID is crucial for JS sync
+    # Use max-width and responsive sizing for mobile
     html = (
         f'<div id="user-avatar-wrapper" class="avatar-wrapper" style="text-align:center;padding:8px 0 12px;">'
-        f'<div class="avatar-ring" style="width:220px;height:220px;border-radius:50%;border:4px solid {accent};'
+        f'<div class="avatar-ring" style="width:min(220px, 45vw);height:min(220px, 45vw);border-radius:50%;border:4px solid {accent};'
         f'margin:0 auto 12px;overflow:hidden;'
         f'box-shadow:0 0 40px {glow},0 0 80px {glow2};">'
         f'{img_tag}</div>'
@@ -272,9 +381,10 @@ def render_active_avatar(
     else:
         img_tag = f'<span style="font-size:3rem;">{leader.get("emoji", "")}</span>'
 
+    # Use max-width and responsive sizing for mobile
     html = (
         f'<div id="leader-avatar-wrapper" class="avatar-wrapper" style="text-align:center;padding:8px 0 12px;">'
-        f'<div class="avatar-ring" style="width:220px;height:220px;border-radius:50%;border:4px solid {accent};'
+        f'<div class="avatar-ring" style="width:min(220px, 45vw);height:min(220px, 45vw);border-radius:50%;border:4px solid {accent};'
         f'margin:0 auto 12px;overflow:hidden;'
         f'box-shadow:0 0 40px {glow},0 0 80px {glow2};">'
         f'{img_tag}</div>'

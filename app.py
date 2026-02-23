@@ -233,6 +233,98 @@ hr{border-color:var(--border)!important;}
 .avatar-wrapper .avatar-ring { transition: all 0.3s ease; }
 .avatar-wrapper .wave-bar { transition: all 0.3s ease; }
 .avatar-wrapper .status-text { transition: color 0.3s ease; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE STYLES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Tablet and below (≤768px) */
+@media screen and (max-width: 768px) {
+    .block-container { padding: 0.5rem 0.5rem !important; max-width: 100% !important; }
+    
+    /* Hide decorative orbs on mobile for performance */
+    .mobile-hide-orbs { display: none !important; }
+    
+    /* Reduce avatar sizes */
+    .avatar-ring { width: 140px !important; height: 140px !important; }
+    .avatar-img { width: 130px !important; height: 130px !important; }
+    
+    /* Stack columns on mobile */
+    [data-testid="column"] { 
+        width: 100% !important; 
+        flex: 1 1 100% !important;
+        padding: 4px !important;
+    }
+    
+    /* Smaller text */
+    h1 { font-size: 1.6rem !important; }
+    h2 { font-size: 1.3rem !important; }
+    
+    /* Reduce button padding */
+    .stButton > button {
+        padding: 8px 14px !important;
+        font-size: 0.75rem !important;
+    }
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="stBaseButton-primary"] {
+        padding: 10px 18px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Chat container adjustments */
+    [data-testid="stChatMessage"] {
+        padding: 10px 12px !important;
+        margin-bottom: 6px !important;
+    }
+    
+    /* Reduce spacing */
+    .stMarkdown { margin-bottom: 0.5rem !important; }
+}
+
+/* Phone (≤480px) */
+@media screen and (max-width: 480px) {
+    .block-container { padding: 0.25rem !important; }
+    
+    /* Even smaller avatars */
+    .avatar-ring { width: 100px !important; height: 100px !important; }
+    .avatar-img { width: 90px !important; height: 90px !important; }
+    
+    h1 { font-size: 1.3rem !important; }
+    h2 { font-size: 1.1rem !important; }
+    p { font-size: 0.85rem !important; }
+    
+    /* Compact buttons */
+    .stButton > button {
+        padding: 6px 10px !important;
+        font-size: 0.7rem !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Hide non-essential decorative elements */
+    .feature-chip { display: none !important; }
+    
+    /* Compact chat */
+    [data-testid="stChatMessage"] {
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+    }
+    
+    /* Reduce metric sizes */
+    [data-testid="stMetricValue"] { font-size: 1rem !important; }
+    [data-testid="stMetricLabel"] { font-size: 0.55rem !important; }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .stButton > button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    [data-testid="stChatInput"] textarea {
+        font-size: 16px !important; /* Prevents iOS zoom on focus */
+    }
+}
 </style>""", unsafe_allow_html=True)
 
 
@@ -729,6 +821,22 @@ def render_chat_screen():
         unsafe_allow_html=True,
     )
 
+    # Mobile-responsive layout: check viewport width via session state
+    # On mobile, we'll show a simplified single-column layout
+    # Note: Streamlit columns will stack on narrow viewports anyway, but we optimize the content
+    
+    # Add mobile detection script (sets a cookie/query param we can check)
+    st.markdown("""
+    <script>
+    (function() {
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            document.body.classList.add('mobile-view');
+        }
+    })();
+    </script>
+    """, unsafe_allow_html=True)
+    
     left_col, chat_col, right_col = st.columns([1.0, 3.0, 1.0], gap="large")
 
     # ══════════════════════════════════════════════════════════════════════
