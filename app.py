@@ -719,10 +719,13 @@ hr{border-color:var(--border)!important;}
     /* Hide desktop-only elements */
     .desktop-only { display: none !important; }
     
-    /* Hide ALL columns - we use custom mobile layout */
+    /* Hide ALL columns completely on phone */
     [data-testid="column"]:first-child,
     [data-testid="column"]:last-child {
         display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
     }
     
     /* Make center chat column full width */
@@ -738,10 +741,23 @@ hr{border-color:var(--border)!important;}
         gap: 0 !important;
     }
     
-    /* Full height chat container - NO SCROLLING on page, only in chat */
+    /* CRITICAL: Hide large avatar wrappers on phone */
+    #leader-avatar-wrapper,
+    #user-avatar-wrapper,
+    .avatar-wrapper {
+        display: none !important;
+    }
+    
+    /* Hide XP panel, badges, use-cases section on phone */
+    .tablet-hide,
+    .use-cases-section {
+        display: none !important;
+    }
+    
+    /* Full height chat container */
     [data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlockBorderWrapper"] {
-        height: calc(100vh - 160px) !important;
-        max-height: calc(100vh - 160px) !important;
+        height: calc(100vh - 180px) !important;
+        max-height: calc(100vh - 180px) !important;
         overflow-y: auto !important;
         border: none !important;
     }
@@ -1560,6 +1576,9 @@ def render_chat_screen():
     # ══════════════════════════════════════════════════════════════════════
     # MOBILE LAYOUT - Compact header + chat only (shown via CSS on mobile)
     # ══════════════════════════════════════════════════════════════════════
+    # ══════════════════════════════════════════════════════════════════════
+    # MOBILE HEADER - Shown only on phone via CSS (.mobile-only)
+    # ══════════════════════════════════════════════════════════════════════
     st.markdown(
         f'''<div class="mobile-only" style="display:none;">
             <div class="mobile-chat-header">
@@ -1567,7 +1586,6 @@ def render_chat_screen():
                      alt="{leader["name"]}" onerror="this.style.display='none'" />
                 <div class="leader-info">
                     <p class="leader-name">{leader["name"]}</p>
-                    <p class="leader-title">{leader.get("title", "Leadership Advisor")}</p>
                 </div>
                 <a href="?switch=1" class="switch-btn" style="text-decoration:none;">Switch</a>
             </div>
@@ -1575,11 +1593,11 @@ def render_chat_screen():
         unsafe_allow_html=True,
     )
     
-    # Render mobile bottom sheet (FAB + drawer) - hidden on desktop via JS
+    # Render bottom sheet for tablet only (hidden on phone via CSS)
     _render_mobile_bottom_sheet(get_scenarios())
 
     # ══════════════════════════════════════════════════════════════════════
-    # DESKTOP LAYOUT - Full 3-column layout (hidden on mobile via CSS)
+    # DESKTOP/TABLET LAYOUT - 3-column layout (left/right hidden on phone via CSS)
     # ══════════════════════════════════════════════════════════════════════
     
     # Desktop top bar
