@@ -285,22 +285,23 @@ hr{border-color:var(--border)!important;}
    MOBILE RESPONSIVE STYLES
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Mobile Chat Header ── */
+/* ── Mobile Chat Header with Prominent Leader Avatar ── */
 .mobile-chat-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    margin-bottom: 8px;
+    gap: 14px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(242,101,34,0.08), rgba(139,92,246,0.05));
+    border: 1px solid rgba(242,101,34,0.15);
+    border-radius: 16px;
+    margin-bottom: 10px;
 }
 .mobile-chat-header .leader-avatar {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    border: 2px solid var(--exl);
+    border: 3px solid var(--exl);
+    box-shadow: 0 0 20px rgba(242,101,34,0.3);
     object-fit: cover;
     flex-shrink: 0;
 }
@@ -310,37 +311,39 @@ hr{border-color:var(--border)!important;}
 }
 .mobile-chat-header .leader-name {
     font-family: 'Syne', sans-serif;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #F0F0F8;
-    margin: 0;
+    margin: 0 0 2px 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .mobile-chat-header .leader-title {
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.4);
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.5);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .mobile-chat-header .switch-btn {
-    padding: 8px 14px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    color: rgba(255,255,255,0.6);
-    font-size: 0.7rem;
-    font-weight: 500;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.72rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 .mobile-chat-header .switch-btn:hover {
-    background: rgba(242,101,34,0.1);
-    border-color: rgba(242,101,34,0.3);
+    background: rgba(242,101,34,0.15);
+    border-color: rgba(242,101,34,0.4);
     color: var(--exl);
 }
 
@@ -537,10 +540,65 @@ hr{border-color:var(--border)!important;}
 /* ── Desktop-only and Mobile-only visibility ── */
 .desktop-only { display: block; }
 .mobile-only { display: none; }
+.tablet-only { display: none; }
 
-/* ── Hide sidebars on mobile ── */
+/* ══════════════════════════════════════════════════════════════════════════
+   iPAD / TABLET LAYOUT (769px - 1024px)
+   Two-column: Leader avatar left, Chat right
+   ══════════════════════════════════════════════════════════════════════════ */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .block-container { padding: 1rem !important; max-width: 100% !important; }
+    
+    /* Show tablet elements */
+    .tablet-only { display: block !important; }
+    
+    /* Hide XP panel and badges on tablet - just leader + chat */
+    .tablet-hide { display: none !important; }
+    
+    /* Hide the right sidebar (user avatar + scenarios) */
+    [data-testid="column"]:last-child {
+        display: none !important;
+    }
+    
+    /* Two column layout: Leader (smaller) + Chat (larger) */
+    [data-testid="column"]:first-child {
+        flex: 0 0 200px !important;
+        max-width: 200px !important;
+    }
+    [data-testid="column"]:nth-child(2) {
+        flex: 1 1 auto !important;
+        max-width: calc(100% - 220px) !important;
+    }
+    
+    /* Compact leader avatar area */
+    .avatar-ring { width: 120px !important; height: 120px !important; }
+    .avatar-img { width: 110px !important; height: 110px !important; }
+    
+    /* Show FAB on tablet too */
+    .use-cases-fab { display: flex !important; }
+    
+    /* Adjust chat container */
+    [data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlockBorderWrapper"] {
+        height: calc(100vh - 140px) !important;
+        max-height: calc(100vh - 140px) !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE / PHONE LAYOUT (≤768px)
+   Single column: Header + Chat only, no sidebars
+   ══════════════════════════════════════════════════════════════════════════ */
 @media screen and (max-width: 768px) {
-    .block-container { padding: 0.5rem !important; max-width: 100% !important; }
+    /* Full width, minimal padding */
+    .block-container { 
+        padding: 8px !important; 
+        max-width: 100% !important;
+        height: 100vh !important;
+        overflow: hidden !important;
+    }
+    
+    /* Hide body scroll */
+    .stApp { overflow: hidden !important; }
     
     /* Hide decorative orbs on mobile */
     .mobile-hide-orbs { display: none !important; }
@@ -551,7 +609,7 @@ hr{border-color:var(--border)!important;}
     /* Hide desktop-only elements */
     .desktop-only { display: none !important; }
     
-    /* Hide left and right columns on mobile - only show chat */
+    /* Hide ALL columns - we use custom mobile layout */
     [data-testid="column"]:first-child,
     [data-testid="column"]:last-child {
         display: none !important;
@@ -562,20 +620,43 @@ hr{border-color:var(--border)!important;}
         flex: 1 1 100% !important;
         max-width: 100% !important;
         width: 100% !important;
+        padding: 0 !important;
     }
     
-    /* Smaller text */
-    h1 { font-size: 1.5rem !important; }
-    h2 { font-size: 1.2rem !important; }
+    /* Remove column gap */
+    [data-testid="stHorizontalBlock"] {
+        gap: 0 !important;
+    }
+    
+    /* Full height chat container - NO SCROLLING on page, only in chat */
+    [data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlockBorderWrapper"] {
+        height: calc(100vh - 160px) !important;
+        max-height: calc(100vh - 160px) !important;
+        overflow-y: auto !important;
+        border: none !important;
+    }
+    
+    /* Hide Streamlit default padding */
+    .stMarkdown { margin-bottom: 0.25rem !important; }
     
     /* Compact chat messages */
     [data-testid="stChatMessage"] {
         padding: 10px 12px !important;
         margin-bottom: 6px !important;
+        border-radius: 12px !important;
     }
     
-    /* Reduce spacing */
-    .stMarkdown { margin-bottom: 0.5rem !important; }
+    /* Fix chat input at bottom */
+    [data-testid="stChatInput"] {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        padding: 8px 12px 12px !important;
+        background: #06060B !important;
+        border-top: 1px solid rgba(255,255,255,0.08) !important;
+        z-index: 100 !important;
+    }
     
     /* Compact buttons */
     .stButton > button {
@@ -587,18 +668,15 @@ hr{border-color:var(--border)!important;}
         padding: 10px 16px !important;
         font-size: 0.78rem !important;
     }
-    
-    /* Adjust chat container height for mobile */
-    [data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlockBorderWrapper"] {
-        height: calc(100vh - 180px) !important;
-        max-height: calc(100vh - 180px) !important;
-    }
 }
 
-/* Phone (≤480px) */
+/* ══════════════════════════════════════════════════════════════════════════
+   SMALL PHONE (≤480px)
+   ══════════════════════════════════════════════════════════════════════════ */
 @media screen and (max-width: 480px) {
-    .block-container { padding: 0.25rem !important; }
+    .block-container { padding: 4px !important; }
     
+    /* Smaller text */
     h1 { font-size: 1.3rem !important; }
     h2 { font-size: 1.1rem !important; }
     p { font-size: 0.85rem !important; }
@@ -619,38 +697,47 @@ hr{border-color:var(--border)!important;}
         border-radius: 10px !important;
     }
     
-    /* Reduce metric sizes */
-    [data-testid="stMetricValue"] { font-size: 1rem !important; }
-    [data-testid="stMetricLabel"] { font-size: 0.55rem !important; }
-    
-    /* Smaller FAB on very small screens */
+    /* Smaller FAB */
     .use-cases-fab {
-        width: 46px;
-        height: 46px;
+        width: 48px;
+        height: 48px;
         font-size: 1.2rem;
-        bottom: 75px;
-        right: 12px;
+        bottom: 70px;
+        right: 10px;
     }
     
     /* Compact mobile header */
     .mobile-chat-header {
-        padding: 8px 10px;
+        padding: 10px 12px;
         gap: 10px;
+        margin-bottom: 6px;
     }
     .mobile-chat-header .leader-avatar {
-        width: 42px;
-        height: 42px;
+        width: 48px;
+        height: 48px;
+        border-width: 2px;
     }
     .mobile-chat-header .leader-name {
-        font-size: 0.88rem;
+        font-size: 0.95rem;
+    }
+    .mobile-chat-header .leader-title {
+        font-size: 0.65rem;
     }
     .mobile-chat-header .switch-btn {
-        padding: 6px 10px;
+        padding: 8px 12px;
         font-size: 0.65rem;
+    }
+    
+    /* Adjust chat height for smaller phones */
+    [data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlockBorderWrapper"] {
+        height: calc(100vh - 150px) !important;
+        max-height: calc(100vh - 150px) !important;
     }
 }
 
-/* Touch-friendly improvements */
+/* ══════════════════════════════════════════════════════════════════════════
+   TOUCH-FRIENDLY IMPROVEMENTS
+   ══════════════════════════════════════════════════════════════════════════ */
 @media (hover: none) and (pointer: coarse) {
     .stButton > button {
         min-height: 44px;
@@ -665,6 +752,10 @@ hr{border-color:var(--border)!important;}
         min-height: 48px;
         display: flex;
         align-items: center;
+    }
+    
+    .mobile-chat-header .switch-btn {
+        min-height: 44px;
     }
 }
 </style>""", unsafe_allow_html=True)
@@ -1279,15 +1370,19 @@ def _render_mobile_bottom_sheet(scenarios: list):
             }}
         }}
         
-        // Hide FAB and bottom sheet on desktop
+        // Show FAB on mobile AND tablet (<=1024px), hide on desktop
         function checkMobile() {{
+            const isMobileOrTablet = window.innerWidth <= 1024;
             const isMobile = window.innerWidth <= 768;
             const fab = document.getElementById('useCasesFab');
             const sheet = document.getElementById('bottomSheet');
             const overlay = document.getElementById('bottomSheetOverlay');
             
-            if (fab) fab.style.display = isMobile ? 'flex' : 'none';
-            if (!isMobile && sheet) {{
+            // Show FAB on mobile and tablet
+            if (fab) fab.style.display = isMobileOrTablet ? 'flex' : 'none';
+            
+            // Close sheet when switching to desktop
+            if (!isMobileOrTablet && sheet) {{
                 sheet.classList.remove('active');
                 overlay.classList.remove('active');
             }}
@@ -1393,16 +1488,19 @@ def render_chat_screen():
     left_col, chat_col, right_col = st.columns([1.0, 3.0, 1.0], gap="large")
 
     # ══════════════════════════════════════════════════════════════════════
-    # LEFT PANEL — Leader avatar + XP + badges (desktop only)
+    # LEFT PANEL — Leader avatar (always) + XP + badges (desktop only, hidden on tablet)
     # ══════════════════════════════════════════════════════════════════════
     with left_col:
-        st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
+        # Leader avatar - visible on desktop AND tablet
         render_active_avatar(
             leader,
             is_speaking=False,
             video_url=st.session_state.video_url,
         )
 
+        # XP panel, badges, switch button - hidden on tablet (tablet-hide class)
+        st.markdown('<div class="tablet-hide">', unsafe_allow_html=True)
+        
         st.markdown(
             f'<div style="width:100%;height:1px;'
             f'background:linear-gradient(90deg,transparent,{hex_to_rgba(accent, 0.3)},transparent);'
@@ -1428,7 +1526,9 @@ def render_chat_screen():
             len(st.session_state.leaders_chatted_set),
             len(leaders),
         )
+        st.markdown('</div>', unsafe_allow_html=True)
 
+        # Switch button - always visible (desktop + tablet)
         if st.button("← Switch Leader", use_container_width=True, key="desktop_switch"):
             st.session_state.selected_leader = None
             st.session_state.tts_pending = False
@@ -1439,7 +1539,6 @@ def render_chat_screen():
             st.session_state.last_leader_audio_b64 = None
             st.session_state.who_speaking = None
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════════════════════════════
     # RIGHT PANEL — User avatar + scenarios (desktop only)
