@@ -178,12 +178,19 @@ hr{border-color:var(--border)!important;}
 .use-cases-title {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 12px;
     padding-bottom: 2px;
+    min-height: 28px;
 }
 .use-cases-title span.icon {
-    font-size: 1rem;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    line-height: 1;
 }
 .use-cases-title span.text {
     font-family: 'Syne', sans-serif;
@@ -192,6 +199,9 @@ hr{border-color:var(--border)!important;}
     color: rgba(255,255,255,0.5);
     text-transform: uppercase;
     letter-spacing: 0.1em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
 }
 .use-cases-container {
     display: flex;
