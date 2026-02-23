@@ -672,12 +672,17 @@ hr{border-color:var(--border)!important;}
     .block-container { 
         padding: 8px !important; 
         max-width: 100% !important;
-        height: 100vh !important;
-        overflow: hidden !important;
+        min-height: 100vh !important;
+        height: auto !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
     }
     
-    /* Hide body scroll */
-    .stApp { overflow: hidden !important; }
+    /* Allow full page scroll on phone */
+    .stApp { 
+        overflow-y: auto !important; 
+        -webkit-overflow-scrolling: touch !important;
+    }
     
     /* Hide decorative orbs on mobile */
     .mobile-hide-orbs { display: none !important; }
