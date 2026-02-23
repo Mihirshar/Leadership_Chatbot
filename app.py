@@ -156,51 +156,120 @@ hr{border-color:var(--border)!important;}
 /* ── Column spacing ── */
 [data-testid="column"]{padding:0 8px;overflow:hidden;}
 
+/* ── Use Cases Panel ── */
+.use-cases-section {
+    position: relative;
+    padding: 16px 12px;
+    background: linear-gradient(165deg, rgba(242,101,34,0.04), rgba(139,92,246,0.02), transparent);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    margin-top: 4px;
+}
+.use-cases-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(242,101,34,0.4), rgba(139,92,246,0.3), transparent);
+    border-radius: 16px 16px 0 0;
+}
+.use-cases-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 2px;
+}
+.use-cases-title span.icon {
+    font-size: 1rem;
+}
+.use-cases-title span.text {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.use-cases-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+/* Hide default Streamlit container border in use cases */
+.use-cases-section [data-testid="stVerticalBlockBorderWrapper"] {
+    border: none !important;
+    background: transparent !important;
+}
+
 /* ── Expander (Use Case Categories) ── */
 .streamlit-expanderHeader {
-    background: rgba(255,255,255,0.03) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02)) !important;
     border: 1px solid rgba(255,255,255,0.08) !important;
-    border-radius: 10px !important;
-    padding: 10px 14px !important;
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
     font-family: 'Syne', sans-serif !important;
-    font-size: 0.75rem !important;
+    font-size: 0.88rem !important;
     font-weight: 600 !important;
-    color: rgba(255,255,255,0.7) !important;
-    transition: all 0.3s ease !important;
+    color: rgba(255,255,255,0.85) !important;
+    transition: all 0.25s ease !important;
+    line-height: 1.35 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+.streamlit-expanderHeader p,
+.streamlit-expanderHeader span {
+    margin: 0 !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    line-height: 1.35 !important;
 }
 .streamlit-expanderHeader:hover {
-    background: rgba(242,101,34,0.08) !important;
-    border-color: rgba(242,101,34,0.25) !important;
+    background: linear-gradient(135deg, rgba(242,101,34,0.12), rgba(242,101,34,0.05)) !important;
+    border-color: rgba(242,101,34,0.35) !important;
     color: #F26522 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(242,101,34,0.15) !important;
 }
 .streamlit-expanderHeader[aria-expanded="true"] {
-    background: rgba(242,101,34,0.1) !important;
-    border-color: rgba(242,101,34,0.3) !important;
+    background: linear-gradient(135deg, rgba(242,101,34,0.14), rgba(242,101,34,0.06)) !important;
+    border-color: rgba(242,101,34,0.4) !important;
     color: #F26522 !important;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
+    box-shadow: 0 8px 24px rgba(242,101,34,0.18) !important;
 }
 .streamlit-expanderContent {
-    background: rgba(255,255,255,0.02) !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
+    background: rgba(6,6,11,0.6) !important;
+    border: 1px solid rgba(242,101,34,0.15) !important;
     border-top: none !important;
-    border-radius: 0 0 10px 10px !important;
-    padding: 8px !important;
+    border-radius: 0 0 12px 12px !important;
+    padding: 12px 10px !important;
+    backdrop-filter: blur(8px);
 }
 .streamlit-expanderContent .stButton > button {
-    background: transparent !important;
-    border: 1px solid rgba(255,255,255,0.05) !important;
-    padding: 8px 12px !important;
-    font-size: 0.72rem !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    font-size: 0.76rem !important;
     text-align: left !important;
     justify-content: flex-start !important;
-    color: rgba(255,255,255,0.6) !important;
-    margin-bottom: 4px !important;
+    color: rgba(255,255,255,0.75) !important;
+    margin-bottom: 6px !important;
+    line-height: 1.4 !important;
+    white-space: normal !important;
+    transition: all 0.2s ease !important;
+    word-break: keep-all !important;
 }
 .streamlit-expanderContent .stButton > button:hover {
-    background: rgba(242,101,34,0.1) !important;
-    border-color: rgba(242,101,34,0.3) !important;
+    background: linear-gradient(135deg, rgba(242,101,34,0.12), rgba(242,101,34,0.06)) !important;
+    border-color: rgba(242,101,34,0.4) !important;
     color: #F26522 !important;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(242,101,34,0.12) !important;
 }
 
 /* ── Animations ── */
@@ -1485,7 +1554,7 @@ def render_chat_screen():
         unsafe_allow_html=True,
     )
     
-    left_col, chat_col, right_col = st.columns([1.0, 3.0, 1.0], gap="large")
+    left_col, chat_col, right_col = st.columns([1.0, 2.9, 1.1], gap="large")
 
     # ══════════════════════════════════════════════════════════════════════
     # LEFT PANEL — Leader avatar (always) + XP + badges (desktop only, hidden on tablet)
@@ -1552,16 +1621,12 @@ def render_chat_screen():
         )
 
         st.markdown(
-            '<div style="width:100%;height:1px;'
-            'background:linear-gradient(90deg,transparent,rgba(242,101,34,0.25),transparent);'
-            'margin:4px 0 12px;"></div>',
-            unsafe_allow_html=True,
-        )
-
-        st.markdown(
-            '<p style="font-family:Syne,sans-serif;font-size:0.7rem;font-weight:700;'
-            'color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.08em;'
-            'margin:0 0 8px;">Use Cases</p>',
+            '''<div class="use-cases-section">
+                <div class="use-cases-title">
+                    <span class="icon">💡</span>
+                    <span class="text">Use Cases</span>
+                </div>
+            </div>''',
             unsafe_allow_html=True,
         )
 
