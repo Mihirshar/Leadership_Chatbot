@@ -276,7 +276,7 @@ def render_avatar_card(leader: dict) -> bool:
     b64 = get_image_base64(avatar_path)
 
     if b64:
-        img_tag = f'<img src="data:image/png;base64,{b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'
+        img_tag = f'<img src="data:image/png;base64,{b64}" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;" />'
     else:
         img_tag = f'<span style="font-size:2.8rem;">{leader.get("emoji", "")}</span>'
 
@@ -325,7 +325,7 @@ def render_user_active_avatar(
     b64 = get_image_base64(avatar_path) if avatar_path else ""
     
     if b64:
-        img_tag = f'<img src="data:image/png;base64,{b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'
+        img_tag = f'<img src="data:image/png;base64,{b64}" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;" />'
     else:
         img_tag = '<span style="font-size:3rem;">&#x1F464;</span>'
 
@@ -376,7 +376,7 @@ def render_active_avatar(
     elif b64:
         img_tag = (
             f'<img src="data:image/png;base64,{b64}" '
-            f'style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'
+            f'style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;" />'
         )
     else:
         img_tag = f'<span style="font-size:3rem;">{leader.get("emoji", "")}</span>'
