@@ -286,7 +286,8 @@ def render_avatar_card(leader: dict) -> bool:
     html = (
         f'<div style="text-align:center;padding:24px 16px 16px;'
         f'background:linear-gradient(145deg,{hex_to_rgba(accent, 0.04)},{hex_to_rgba(accent, 0.01)});'
-        f'border:1px solid {hex_to_rgba(accent, 0.12)};border-radius:20px;position:relative;overflow:hidden;">'
+        f'border:1px solid {hex_to_rgba(accent, 0.12)};border-radius:20px;position:relative;overflow:hidden;'
+        f'display:flex;flex-direction:column;min-height:410px;">'
         f'<div style="position:absolute;top:0;left:0;right:0;height:3px;'
         f'background:linear-gradient(90deg,transparent,{accent},transparent);opacity:0.6;"></div>'
         f'<div style="width:120px;height:120px;border-radius:50%;border:3px solid {accent};'
@@ -300,9 +301,11 @@ def render_avatar_card(leader: dict) -> bool:
         f'<div style="width:3px;height:16px;border-radius:2px;background:{accent};opacity:0.4;"></div>'
         f'<div style="width:3px;height:16px;border-radius:2px;background:{accent};opacity:0.4;"></div>'
         f'</div>'
-        f'<h3 style="margin:0 0 2px;font-family:Syne,sans-serif;font-size:1.15rem;font-weight:700;color:#F0F0F8;">{leader["name"]}</h3>'
-        f'<p style="margin:0 0 12px;font-size:0.75rem;color:{accent};font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{leader["role"]}</p>'
-        f'<p style="margin:0 4px;font-size:0.7rem;color:rgba(255,255,255,0.4);font-style:italic;line-height:1.45;">'
+        f'<h3 style="margin:0 0 2px;min-height:64px;display:flex;align-items:center;justify-content:center;'
+        f'font-family:Syne,sans-serif;font-size:1.15rem;font-weight:700;color:#F0F0F8;">{leader["name"]}</h3>'
+        f'<p style="margin:0 0 12px;min-height:36px;display:flex;align-items:center;justify-content:center;'
+        f'font-size:0.75rem;color:{accent};font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{leader["role"]}</p>'
+        f'<p style="margin:0 4px;min-height:78px;font-size:0.7rem;color:rgba(255,255,255,0.4);font-style:italic;line-height:1.45;">'
         f'&ldquo;{leader["personality"]["leadership_philosophy"]}&rdquo;</p>'
         f'</div>'
     )
@@ -336,7 +339,7 @@ def render_user_active_avatar(
     # Use max-width and responsive sizing for mobile
     html = (
         f'<div id="user-avatar-wrapper" class="avatar-wrapper" style="text-align:center;padding:8px 0 12px;">'
-        f'<div class="avatar-ring" style="width:min(220px, 45vw);height:min(220px, 45vw);border-radius:50%;border:4px solid {accent};'
+        f'<div class="avatar-ring" style="width:min(220px, 100%);height:min(220px, 100%);border-radius:50%;border:4px solid {accent};'
         f'margin:0 auto 12px;overflow:hidden;'
         f'box-shadow:0 0 40px {glow},0 0 80px {glow2};">'
         f'{img_tag}</div>'
@@ -384,7 +387,7 @@ def render_active_avatar(
     # Use max-width and responsive sizing for mobile
     html = (
         f'<div id="leader-avatar-wrapper" class="avatar-wrapper" style="text-align:center;padding:8px 0 12px;">'
-        f'<div class="avatar-ring" style="width:min(220px, 45vw);height:min(220px, 45vw);border-radius:50%;border:4px solid {accent};'
+        f'<div class="avatar-ring" style="width:min(220px, 100%);height:min(220px, 100%);border-radius:50%;border:4px solid {accent};'
         f'margin:0 auto 12px;overflow:hidden;'
         f'box-shadow:0 0 40px {glow},0 0 80px {glow2};">'
         f'{img_tag}</div>'
