@@ -38,10 +38,9 @@ def render_tts_dialogue(
         var hasUserAudio = {has_user_audio};
         var hasLeaderAudio = {has_leader_audio};
         
-        // Detect mobile/touch devices
-        var isMobile = ('ontouchstart' in window) || 
-                       (navigator.maxTouchPoints > 0) || 
-                       (window.innerWidth <= 768);
+        // Treat only phone-width screens as mobile for autoplay gating.
+        // Laptop touchscreens and iPads should still attempt autoplay first.
+        var isPhone = window.innerWidth <= 768;
         
         // Track active audio to prevent overlapping
         var currentAudio = null;
@@ -127,8 +126,8 @@ def render_tts_dialogue(
                         console.warn("User audio autoplay blocked", e);
                         setSpeaking(userEl, false);
                         currentAudio = null;
-                        // On mobile, skip to leader audio with play button
-                        if (isMobile) {{
+                        // On phones, show tap-to-play fallback immediately
+                        if (isPhone) {{
                             showPlayButton(leaderEl, playLeaderWithInteraction, '🔊 Tap to Play Response');
                         }} else {{
                             showPlayButton(userEl, function() {{
@@ -139,7 +138,7 @@ def render_tts_dialogue(
                         }}
                     }});
                 }}
-            }} else if (synth && {safe_user}.length > 0 && !isMobile) {{
+            }} else if (synth && {safe_user}.length > 0 && !isPhone) {{
                 // Only use speechSynthesis on desktop
                 var uQ = new SpeechSynthesisUtterance({safe_user});
                 uQ.rate = 1.25; uQ.pitch = 1.05; uQ.lang = 'en';
@@ -240,8 +239,8 @@ def render_tts_dialogue(
         }}
 
         function fallbackTTS() {{
-            if (!synth || isMobile) {{
-                // speechSynthesis often doesn't work well on mobile
+            if (!synth || isPhone) {{
+                // speechSynthesis often doesn't work well on phones
                 setSpeaking(leaderEl, false);
                 return;
             }}
@@ -252,8 +251,9 @@ def render_tts_dialogue(
             synth.speak(uA);
         }}
 
-        // On mobile, always show play button immediately
-        if (isMobile && (hasUserAudio || hasLeaderAudio || hasVideo)) {{
+        // Only phones get immediate tap-to-play to satisfy autoplay policies.
+        // Laptops and iPads attempt autoplay first.
+        if (isPhone && (hasUserAudio || hasLeaderAudio || hasVideo)) {{
             showPlayButton(leaderEl, function() {{
                 if (hasUserAudio) {{
                     playUser();

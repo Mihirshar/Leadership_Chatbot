@@ -690,6 +690,32 @@ hr{border-color:var(--border)!important;}
     /* Show mobile-only elements */
     .mobile-only { display: block !important; }
     
+    /* Phone-first header: avatar on top, chat-focused */
+    .mobile-chat-header {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 8px !important;
+        padding: 10px 12px 8px !important;
+        margin-bottom: 8px !important;
+    }
+    .mobile-chat-header .leader-avatar {
+        width: 86px !important;
+        height: 86px !important;
+        border-width: 3px !important;
+        box-shadow: 0 0 24px rgba(242,101,34,0.32) !important;
+    }
+    .mobile-chat-header .leader-info {
+        flex: 0 0 auto !important;
+    }
+    .mobile-chat-header .leader-title {
+        display: none !important;
+    }
+    .mobile-chat-header .switch-btn {
+        padding: 8px 12px !important;
+        font-size: 0.66rem !important;
+    }
+
     /* Hide desktop-only elements */
     .desktop-only { display: none !important; }
     
@@ -740,6 +766,13 @@ hr{border-color:var(--border)!important;}
         background: #06060B !important;
         border-top: 1px solid rgba(255,255,255,0.08) !important;
         z-index: 100 !important;
+    }
+
+    /* Keep phone clean: no extra FAB/sheet clutter */
+    .use-cases-fab,
+    .bottom-sheet,
+    .bottom-sheet-overlay {
+        display: none !important;
     }
     
     /* Compact buttons */
