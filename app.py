@@ -156,6 +156,53 @@ hr{border-color:var(--border)!important;}
 /* ── Column spacing ── */
 [data-testid="column"]{padding:0 8px;overflow:hidden;}
 
+/* ── Expander (Use Case Categories) ── */
+.streamlit-expanderHeader {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    font-family: 'Syne', sans-serif !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,0.7) !important;
+    transition: all 0.3s ease !important;
+}
+.streamlit-expanderHeader:hover {
+    background: rgba(242,101,34,0.08) !important;
+    border-color: rgba(242,101,34,0.25) !important;
+    color: #F26522 !important;
+}
+.streamlit-expanderHeader[aria-expanded="true"] {
+    background: rgba(242,101,34,0.1) !important;
+    border-color: rgba(242,101,34,0.3) !important;
+    color: #F26522 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+.streamlit-expanderContent {
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    border-top: none !important;
+    border-radius: 0 0 10px 10px !important;
+    padding: 8px !important;
+}
+.streamlit-expanderContent .stButton > button {
+    background: transparent !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    padding: 8px 12px !important;
+    font-size: 0.72rem !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    color: rgba(255,255,255,0.6) !important;
+    margin-bottom: 4px !important;
+}
+.streamlit-expanderContent .stButton > button:hover {
+    background: rgba(242,101,34,0.1) !important;
+    border-color: rgba(242,101,34,0.3) !important;
+    color: #F26522 !important;
+}
+
 /* ── Animations ── */
 @keyframes avatarFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes idlePulse{
@@ -238,40 +285,290 @@ hr{border-color:var(--border)!important;}
    MOBILE RESPONSIVE STYLES
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Tablet and below (≤768px) */
+/* ── Mobile Chat Header ── */
+.mobile-chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+.mobile-chat-header .leader-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--exl);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.mobile-chat-header .leader-info {
+    flex: 1;
+    min-width: 0;
+}
+.mobile-chat-header .leader-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #F0F0F8;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mobile-chat-header .leader-title {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.4);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mobile-chat-header .switch-btn {
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.mobile-chat-header .switch-btn:hover {
+    background: rgba(242,101,34,0.1);
+    border-color: rgba(242,101,34,0.3);
+    color: var(--exl);
+}
+
+/* ── Use Cases FAB (Floating Action Button) ── */
+.use-cases-fab {
+    position: fixed;
+    bottom: 80px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #F26522, #E85D26);
+    border: none;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(242,101,34,0.4), 0 0 30px rgba(242,101,34,0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+.use-cases-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 28px rgba(242,101,34,0.5), 0 0 40px rgba(242,101,34,0.3);
+}
+.use-cases-fab.active {
+    transform: rotate(45deg);
+    background: rgba(255,255,255,0.1);
+    box-shadow: none;
+}
+
+/* ── Bottom Sheet ── */
+.bottom-sheet-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1001;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.bottom-sheet-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 70vh;
+    background: #0a0a10;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-bottom: none;
+    z-index: 1002;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.bottom-sheet.active {
+    transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin: 12px auto 8px;
+    flex-shrink: 0;
+}
+
+.bottom-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 20px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+}
+.bottom-sheet-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #F0F0F8;
+    margin: 0;
+}
+.bottom-sheet-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.bottom-sheet-close:hover {
+    background: rgba(242,101,34,0.1);
+    border-color: rgba(242,101,34,0.3);
+    color: var(--exl);
+}
+
+.bottom-sheet-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px 24px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.bottom-sheet-category {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+.bottom-sheet-category-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.bottom-sheet-category-header:hover {
+    background: rgba(242,101,34,0.05);
+}
+.bottom-sheet-category-header.expanded {
+    background: rgba(242,101,34,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.bottom-sheet-category-header .icon {
+    font-size: 1.1rem;
+}
+.bottom-sheet-category-header .name {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+}
+.bottom-sheet-category-header .arrow {
+    color: rgba(255,255,255,0.3);
+    transition: transform 0.2s ease;
+}
+.bottom-sheet-category-header.expanded .arrow {
+    transform: rotate(90deg);
+    color: var(--exl);
+}
+
+.bottom-sheet-category-items {
+    display: none;
+    padding: 8px;
+}
+.bottom-sheet-category-items.expanded {
+    display: block;
+}
+.bottom-sheet-item {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 8px;
+    margin-bottom: 4px;
+    text-align: left;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.bottom-sheet-item:hover {
+    background: rgba(242,101,34,0.08);
+    border-color: rgba(242,101,34,0.2);
+    color: var(--exl);
+}
+
+/* ── Desktop-only and Mobile-only visibility ── */
+.desktop-only { display: block; }
+.mobile-only { display: none; }
+
+/* ── Hide sidebars on mobile ── */
 @media screen and (max-width: 768px) {
-    .block-container { padding: 0.5rem 0.5rem !important; max-width: 100% !important; }
+    .block-container { padding: 0.5rem !important; max-width: 100% !important; }
     
-    /* Hide decorative orbs on mobile for performance */
+    /* Hide decorative orbs on mobile */
     .mobile-hide-orbs { display: none !important; }
     
-    /* Reduce avatar sizes */
-    .avatar-ring { width: 140px !important; height: 140px !important; }
-    .avatar-img { width: 130px !important; height: 130px !important; }
+    /* Show mobile-only elements */
+    .mobile-only { display: block !important; }
     
-    /* Stack columns on mobile */
-    [data-testid="column"] { 
-        width: 100% !important; 
+    /* Hide desktop-only elements */
+    .desktop-only { display: none !important; }
+    
+    /* Hide left and right columns on mobile - only show chat */
+    [data-testid="column"]:first-child,
+    [data-testid="column"]:last-child {
+        display: none !important;
+    }
+    
+    /* Make center chat column full width */
+    [data-testid="column"]:nth-child(2) {
         flex: 1 1 100% !important;
-        padding: 4px !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
     
     /* Smaller text */
-    h1 { font-size: 1.6rem !important; }
-    h2 { font-size: 1.3rem !important; }
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.2rem !important; }
     
-    /* Reduce button padding */
-    .stButton > button {
-        padding: 8px 14px !important;
-        font-size: 0.75rem !important;
-    }
-    .stButton > button[kind="primary"],
-    .stButton > button[data-testid="stBaseButton-primary"] {
-        padding: 10px 18px !important;
-        font-size: 0.8rem !important;
-    }
-    
-    /* Chat container adjustments */
+    /* Compact chat messages */
     [data-testid="stChatMessage"] {
         padding: 10px 12px !important;
         margin-bottom: 6px !important;
@@ -279,15 +576,28 @@ hr{border-color:var(--border)!important;}
     
     /* Reduce spacing */
     .stMarkdown { margin-bottom: 0.5rem !important; }
+    
+    /* Compact buttons */
+    .stButton > button {
+        padding: 8px 14px !important;
+        font-size: 0.75rem !important;
+    }
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="stBaseButton-primary"] {
+        padding: 10px 16px !important;
+        font-size: 0.78rem !important;
+    }
+    
+    /* Adjust chat container height for mobile */
+    [data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlockBorderWrapper"] {
+        height: calc(100vh - 180px) !important;
+        max-height: calc(100vh - 180px) !important;
+    }
 }
 
 /* Phone (≤480px) */
 @media screen and (max-width: 480px) {
     .block-container { padding: 0.25rem !important; }
-    
-    /* Even smaller avatars */
-    .avatar-ring { width: 100px !important; height: 100px !important; }
-    .avatar-img { width: 90px !important; height: 90px !important; }
     
     h1 { font-size: 1.3rem !important; }
     h2 { font-size: 1.1rem !important; }
@@ -312,6 +622,32 @@ hr{border-color:var(--border)!important;}
     /* Reduce metric sizes */
     [data-testid="stMetricValue"] { font-size: 1rem !important; }
     [data-testid="stMetricLabel"] { font-size: 0.55rem !important; }
+    
+    /* Smaller FAB on very small screens */
+    .use-cases-fab {
+        width: 46px;
+        height: 46px;
+        font-size: 1.2rem;
+        bottom: 75px;
+        right: 12px;
+    }
+    
+    /* Compact mobile header */
+    .mobile-chat-header {
+        padding: 8px 10px;
+        gap: 10px;
+    }
+    .mobile-chat-header .leader-avatar {
+        width: 42px;
+        height: 42px;
+    }
+    .mobile-chat-header .leader-name {
+        font-size: 0.88rem;
+    }
+    .mobile-chat-header .switch-btn {
+        padding: 6px 10px;
+        font-size: 0.65rem;
+    }
 }
 
 /* Touch-friendly improvements */
@@ -323,6 +659,12 @@ hr{border-color:var(--border)!important;}
     
     [data-testid="stChatInput"] textarea {
         font-size: 16px !important; /* Prevents iOS zoom on focus */
+    }
+    
+    .bottom-sheet-item {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
     }
 }
 </style>""", unsafe_allow_html=True)
@@ -354,12 +696,59 @@ def init_state():
         "user_generated_avatar": None,
         "who_speaking": None,
         "video_url": None,
+        "is_mobile": False,
+        "bottom_sheet_open": False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
 
 init_state()
+
+
+def _inject_mobile_detection():
+    """Inject JavaScript to detect mobile and communicate with Streamlit via query params."""
+    st.markdown("""
+    <script>
+    (function() {
+        const isMobile = window.innerWidth <= 768 || 
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Add class to body for CSS targeting
+        if (isMobile) {
+            document.body.classList.add('mobile-view');
+        } else {
+            document.body.classList.remove('mobile-view');
+        }
+        
+        // Store in sessionStorage for persistence
+        sessionStorage.setItem('is_mobile', isMobile ? 'true' : 'false');
+        
+        // Update on resize
+        window.addEventListener('resize', function() {
+            const nowMobile = window.innerWidth <= 768;
+            if (nowMobile) {
+                document.body.classList.add('mobile-view');
+            } else {
+                document.body.classList.remove('mobile-view');
+            }
+            sessionStorage.setItem('is_mobile', nowMobile ? 'true' : 'false');
+        });
+    })();
+    </script>
+    """, unsafe_allow_html=True)
+
+
+def _is_mobile_request() -> bool:
+    """Check if current request is from mobile based on query params or user agent heuristics."""
+    # Check query params first (set by JS)
+    query_params = st.query_params
+    if query_params.get("mobile") == "true":
+        return True
+    
+    # Fallback: use a conservative heuristic based on common mobile patterns
+    # This is set by the JS on page load, but we also check for touch capability
+    return st.session_state.get("is_mobile", False)
 
 
 def _clean_tts_text(text: str) -> str:
@@ -783,6 +1172,135 @@ def render_leader_selection():
 # ---------------------------------------------------------------------------
 # Chat screen
 # ---------------------------------------------------------------------------
+def _render_mobile_chat_header(leader: dict, leader_avatar_b64: str):
+    """Render compact mobile header with leader info and switch button."""
+    leader_title = leader.get("title", "Leadership Advisor")
+    
+    st.markdown(
+        f'''<div class="mobile-chat-header">
+            <img class="leader-avatar" src="data:image/png;base64,{leader_avatar_b64}" alt="{leader["name"]}" />
+            <div class="leader-info">
+                <p class="leader-name">{leader["name"]}</p>
+                <p class="leader-title">{leader_title}</p>
+            </div>
+            <button class="switch-btn" onclick="window.location.href='?switch=1'">Switch</button>
+        </div>''',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_mobile_bottom_sheet(scenarios: list):
+    """Render the mobile bottom sheet with use cases."""
+    # Build category HTML
+    categories_html = ""
+    for i, cat in enumerate(scenarios):
+        items_html = ""
+        for item in cat["items"]:
+            safe_prompt = item["prompt"].replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
+            items_html += f'''<button class="bottom-sheet-item" onclick="selectUseCase('{safe_prompt}')">{item["title"]}</button>'''
+        
+        categories_html += f'''
+        <div class="bottom-sheet-category">
+            <div class="bottom-sheet-category-header" onclick="toggleCategory({i})">
+                <span class="icon">{cat["icon"]}</span>
+                <span class="name">{cat["category"]}</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="bottom-sheet-category-items" id="cat-items-{i}">
+                {items_html}
+            </div>
+        </div>'''
+    
+    st.markdown(
+        f'''
+        <!-- Bottom Sheet Overlay -->
+        <div class="bottom-sheet-overlay" id="bottomSheetOverlay" onclick="closeBottomSheet()"></div>
+        
+        <!-- Bottom Sheet -->
+        <div class="bottom-sheet" id="bottomSheet">
+            <div class="bottom-sheet-handle"></div>
+            <div class="bottom-sheet-header">
+                <h3>Use Cases</h3>
+                <button class="bottom-sheet-close" onclick="closeBottomSheet()">&times;</button>
+            </div>
+            <div class="bottom-sheet-content">
+                {categories_html}
+            </div>
+        </div>
+        
+        <!-- FAB Button -->
+        <button class="use-cases-fab" id="useCasesFab" onclick="toggleBottomSheet()">📋</button>
+        
+        <script>
+        function toggleBottomSheet() {{
+            const sheet = document.getElementById('bottomSheet');
+            const overlay = document.getElementById('bottomSheetOverlay');
+            const fab = document.getElementById('useCasesFab');
+            const isActive = sheet.classList.contains('active');
+            
+            if (isActive) {{
+                sheet.classList.remove('active');
+                overlay.classList.remove('active');
+                fab.classList.remove('active');
+            }} else {{
+                sheet.classList.add('active');
+                overlay.classList.add('active');
+                fab.classList.add('active');
+            }}
+        }}
+        
+        function closeBottomSheet() {{
+            document.getElementById('bottomSheet').classList.remove('active');
+            document.getElementById('bottomSheetOverlay').classList.remove('active');
+            document.getElementById('useCasesFab').classList.remove('active');
+        }}
+        
+        function toggleCategory(index) {{
+            const header = document.querySelectorAll('.bottom-sheet-category-header')[index];
+            const items = document.getElementById('cat-items-' + index);
+            
+            header.classList.toggle('expanded');
+            items.classList.toggle('expanded');
+        }}
+        
+        function selectUseCase(prompt) {{
+            // Close the bottom sheet
+            closeBottomSheet();
+            
+            // Find the chat input and set the value
+            const chatInput = document.querySelector('[data-testid="stChatInput"] textarea');
+            if (chatInput) {{
+                // Set the value
+                chatInput.value = prompt;
+                // Trigger input event
+                chatInput.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                // Focus the input
+                chatInput.focus();
+            }}
+        }}
+        
+        // Hide FAB and bottom sheet on desktop
+        function checkMobile() {{
+            const isMobile = window.innerWidth <= 768;
+            const fab = document.getElementById('useCasesFab');
+            const sheet = document.getElementById('bottomSheet');
+            const overlay = document.getElementById('bottomSheetOverlay');
+            
+            if (fab) fab.style.display = isMobile ? 'flex' : 'none';
+            if (!isMobile && sheet) {{
+                sheet.classList.remove('active');
+                overlay.classList.remove('active');
+            }}
+        }}
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        </script>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+
 def render_chat_screen():
     leader = leaders[st.session_state.selected_leader]
     accent = leader.get("accent_color", "#F26522")
@@ -802,47 +1320,83 @@ def render_chat_screen():
             st.session_state.last_leader_tts_text,
         )
 
-    # ── Top bar: logo + header + exchange count ──
+    # Inject mobile detection
+    _inject_mobile_detection()
+    
+    # Handle switch request from mobile header button
+    if st.query_params.get("switch") == "1":
+        st.query_params.clear()
+        st.session_state.selected_leader = None
+        st.session_state.tts_pending = False
+        st.session_state.last_user_text = None
+        st.session_state.last_leader_text = None
+        st.session_state.last_user_tts_text = None
+        st.session_state.last_leader_tts_text = None
+        st.session_state.last_leader_audio_b64 = None
+        st.session_state.who_speaking = None
+        st.rerun()
+
+    # Get leader avatar as base64 for mobile header
+    leader_avatar_path = leader.get("avatar_image", "")
+    if leader_avatar_path and Path(leader_avatar_path).exists():
+        leader_avatar_b64 = base64.b64encode(Path(leader_avatar_path).read_bytes()).decode()
+    else:
+        leader_avatar_b64 = ""
+
     exchange_count = len([m for m in st.session_state.conversation if m["role"] == "user"])
+
+    # ══════════════════════════════════════════════════════════════════════
+    # MOBILE LAYOUT - Compact header + chat only (shown via CSS on mobile)
+    # ══════════════════════════════════════════════════════════════════════
     st.markdown(
-        f'<div style="display:flex;align-items:center;justify-content:space-between;'
-        f'padding:8px 18px;background:rgba(255,255,255,0.02);'
-        f'border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:10px;">'
-        f'<div style="display:flex;align-items:center;gap:10px;">'
-        f'<img src="data:image/png;base64,{EXL_LOGO_B64}" style="height:18px;opacity:0.7;" />'
-        f'<div style="width:1px;height:18px;background:rgba(255,255,255,0.08);"></div>'
-        f'<span style="font-family:Syne,sans-serif;font-size:0.78rem;font-weight:600;color:#F0F0F8;">'
-        f'Leadership AI</span>'
-        f'<div style="width:6px;height:6px;border-radius:50%;background:#4ADE80;'
-        f'box-shadow:0 0 6px rgba(74,222,128,0.5);animation:glowDot 2s ease-in-out infinite;"></div>'
-        f'</div>'
-        f'<span style="font-size:0.65rem;color:rgba(255,255,255,0.25);font-family:JetBrains Mono,monospace;">'
-        f'{exchange_count} exchanges</span></div>',
+        f'''<div class="mobile-only" style="display:none;">
+            <div class="mobile-chat-header">
+                <img class="leader-avatar" src="data:image/png;base64,{leader_avatar_b64}" 
+                     alt="{leader["name"]}" onerror="this.style.display='none'" />
+                <div class="leader-info">
+                    <p class="leader-name">{leader["name"]}</p>
+                    <p class="leader-title">{leader.get("title", "Leadership Advisor")}</p>
+                </div>
+                <a href="?switch=1" class="switch-btn" style="text-decoration:none;">Switch</a>
+            </div>
+        </div>''',
         unsafe_allow_html=True,
     )
-
-    # Mobile-responsive layout: check viewport width via session state
-    # On mobile, we'll show a simplified single-column layout
-    # Note: Streamlit columns will stack on narrow viewports anyway, but we optimize the content
     
-    # Add mobile detection script (sets a cookie/query param we can check)
-    st.markdown("""
-    <script>
-    (function() {
-        const isMobile = window.innerWidth <= 768;
-        if (isMobile) {
-            document.body.classList.add('mobile-view');
-        }
-    })();
-    </script>
-    """, unsafe_allow_html=True)
+    # Render mobile bottom sheet (FAB + drawer) - hidden on desktop via JS
+    _render_mobile_bottom_sheet(get_scenarios())
+
+    # ══════════════════════════════════════════════════════════════════════
+    # DESKTOP LAYOUT - Full 3-column layout (hidden on mobile via CSS)
+    # ══════════════════════════════════════════════════════════════════════
+    
+    # Desktop top bar
+    st.markdown(
+        f'''<div class="desktop-only">
+            <div style="display:flex;align-items:center;justify-content:space-between;
+            padding:8px 18px;background:rgba(255,255,255,0.02);
+            border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+            <img src="data:image/png;base64,{EXL_LOGO_B64}" style="height:18px;opacity:0.7;" />
+            <div style="width:1px;height:18px;background:rgba(255,255,255,0.08);"></div>
+            <span style="font-family:Syne,sans-serif;font-size:0.78rem;font-weight:600;color:#F0F0F8;">
+            Leadership AI</span>
+            <div style="width:6px;height:6px;border-radius:50%;background:#4ADE80;
+            box-shadow:0 0 6px rgba(74,222,128,0.5);animation:glowDot 2s ease-in-out infinite;"></div>
+            </div>
+            <span style="font-size:0.65rem;color:rgba(255,255,255,0.25);font-family:JetBrains Mono,monospace;">
+            {exchange_count} exchanges</span></div>
+        </div>''',
+        unsafe_allow_html=True,
+    )
     
     left_col, chat_col, right_col = st.columns([1.0, 3.0, 1.0], gap="large")
 
     # ══════════════════════════════════════════════════════════════════════
-    # LEFT PANEL — Leader avatar + XP + badges
+    # LEFT PANEL — Leader avatar + XP + badges (desktop only)
     # ══════════════════════════════════════════════════════════════════════
     with left_col:
+        st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
         render_active_avatar(
             leader,
             is_speaking=False,
@@ -875,7 +1429,7 @@ def render_chat_screen():
             len(leaders),
         )
 
-        if st.button("← Switch Leader", use_container_width=True):
+        if st.button("← Switch Leader", use_container_width=True, key="desktop_switch"):
             st.session_state.selected_leader = None
             st.session_state.tts_pending = False
             st.session_state.last_user_text = None
@@ -885,11 +1439,13 @@ def render_chat_screen():
             st.session_state.last_leader_audio_b64 = None
             st.session_state.who_speaking = None
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════════════════════════════
-    # RIGHT PANEL — User avatar + scenarios
+    # RIGHT PANEL — User avatar + scenarios (desktop only)
     # ══════════════════════════════════════════════════════════════════════
     with right_col:
+        st.markdown('<div class="desktop-only">', unsafe_allow_html=True)
         render_user_active_avatar(
             avatar_path=st.session_state.user_avatar_path,
             user_name=user_name,
@@ -906,29 +1462,22 @@ def render_chat_screen():
         st.markdown(
             '<p style="font-family:Syne,sans-serif;font-size:0.7rem;font-weight:700;'
             'color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.08em;'
-            'margin:0 0 8px;">Scenarios</p>',
+            'margin:0 0 8px;">Use Cases</p>',
             unsafe_allow_html=True,
         )
 
         scenarios_container = st.container(height=340)
         with scenarios_container:
             for cat in get_scenarios():
-                st.markdown(
-                    f'<div style="display:flex;align-items:center;gap:5px;margin:8px 0 4px;">'
-                    f'<span style="font-size:0.8rem;">{cat["icon"]}</span>'
-                    f'<span style="font-family:Syne,sans-serif;font-size:0.62rem;font-weight:700;'
-                    f'color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.05em;">'
-                    f'{cat["category"]}</span></div>',
-                    unsafe_allow_html=True,
-                )
-                for item in cat["items"]:
-                    if st.button(
-                        item["title"],
-                        key=f"sc_{item['title'][:20]}",
-                        use_container_width=True,
-                    ):
-                        st.session_state.pending_question = item["prompt"]
-                        st.rerun()
+                with st.expander(f"{cat['icon']} {cat['category']}", expanded=False):
+                    for item in cat["items"]:
+                        if st.button(
+                            item["title"],
+                            key=f"sc_{cat['category'][:10]}_{item['title'][:20]}",
+                            use_container_width=True,
+                        ):
+                            st.session_state.pending_question = item["prompt"]
+                            st.rerun()
 
         # EXL footer badge
         st.markdown(
@@ -939,9 +1488,10 @@ def render_chat_screen():
             f'AI Summit 2026</p></div>',
             unsafe_allow_html=True,
         )
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════════════════════════════
-    # CENTER PANEL — Chat
+    # CENTER PANEL — Chat (visible on both mobile and desktop)
     # ══════════════════════════════════════════════════════════════════════
     with chat_col:
         chat_container = st.container(height=500)
